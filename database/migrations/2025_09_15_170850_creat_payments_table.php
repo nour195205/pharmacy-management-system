@@ -11,12 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('branches', function (Blueprint $table) {
+        Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->text('location');
+            $table->string('invoice_id');
+            $table->enum('type' , ['مشتريات' , 'مبيعات']);
+            $table->integer('amount');
+            $table->date('date');
+            $table->enum('method', ['نقدا' , 'بطاقة' , 'أخرى']);
             $table->timestamps();
         });
 
     }
+
+
 };

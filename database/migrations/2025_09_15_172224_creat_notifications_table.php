@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('branches', function (Blueprint $table) {
+        Schema::create('notifications', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->text('location');
+            $table->enum('type' , ['انتهاء الصلاحية' , 'المخزون' , 'إلخ']);
+            $table->text('message');
             $table->timestamps();
         });
 
     }
+
 };
