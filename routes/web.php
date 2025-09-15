@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\MedicineController;
 
 Route::get('/', function () {  
     return view('welcome');
@@ -26,6 +27,14 @@ Route::get('/suppliers/{supplier}/edit', [SupplierController::class, 'edit'])->n
 Route::delete('/suppliers/{supplier}', [SupplierController::class, 'destroy'])->name('suppliers.destroy');
 Route::put('/suppliers/{supplier}', [SupplierController::class, 'update'])->name('suppliers.update');
 Route::post('/suppliers', [SupplierController::class, 'store'])->name('suppliers.store');
+
+Route::get('/medicines', [MedicineController::class, 'index'])->name('medicines.index');
+Route::get('/medicines/create', [MedicineController::class, 'create'])->name('medicines.create');
+Route::get('/medicines/{medicine}', [MedicineController::class, 'show'])->name('medicines.show');
+Route::get('/medicines/{medicine}/edit', [MedicineController::class, 'edit'])->name('medicines.edit');
+Route::delete('/medicines/{medicine}', [MedicineController::class, 'destroy'])->name('medicines.destroy');
+Route::put('/medicines/{medicine}', [MedicineController::class, 'update'])->name('medicines.update');
+Route::post('/medicines', [MedicineController::class, 'store'])->name('medicines.store');
 
 
 
