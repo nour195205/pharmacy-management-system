@@ -32,7 +32,7 @@ return new class extends Migration {
             $table->integer('quantity');
             $table->integer('purchase_price');
             $table->integer('selling_price');
-            $table->foreignId('store_id')->constrained()->onDelete('cascade');
+            $table->foreignId('branch_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
 

@@ -8,7 +8,7 @@ class Batch extends Model
 {
     protected $fillable = [
         'medicine_id', 'batch_number', 'manufacture_date',
-        'expiry_date', 'quantity', 'purchase_price', 'selling_price', 'store_id'
+        'expiry_date', 'quantity', 'purchase_price', 'selling_price', 'branch_id'
     ];
 
     public function medicine()

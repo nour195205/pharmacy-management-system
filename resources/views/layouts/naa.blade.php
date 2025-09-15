@@ -27,24 +27,13 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    {{-- Dropdown الفروع --}}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                            الفروع
-                        </a>
-                        <ul class="dropdown-menu">
-                            @foreach(\App\Models\Branch::all() as $branch)
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('branches.show', $branch->id) }}">
-                                        {{ $branch->name }}
-                                    </a>
-                                </li>
-                            @endforeach
-                        </ul>
+                <ul class="navbar-nav ms-auto">                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('branches.index') }}">الفروع</a>
                     </li>
-
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('suppliers.index') }}">الموردين</a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url('/about') }}">عن النظام</a>
                     </li>
