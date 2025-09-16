@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class MedicineController extends Controller
 {
-    // 📌 عرض كل الأدوية
+   
     public function index()
     {
         $medicines = Medicine::all();

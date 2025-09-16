@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\MedicineController;
+use App\Http\Controllers\BatchController;
 
 Route::get('/', function () {  
     return view('welcome');
@@ -35,6 +36,14 @@ Route::get('/medicines/{medicine}/edit', [MedicineController::class, 'edit'])->n
 Route::delete('/medicines/{medicine}', [MedicineController::class, 'destroy'])->name('medicines.destroy');
 Route::put('/medicines/{medicine}', [MedicineController::class, 'update'])->name('medicines.update');
 Route::post('/medicines', [MedicineController::class, 'store'])->name('medicines.store');
+
+Route::get('/batches', [BatchController::class, 'index'])->name('batches.index');
+Route::get('/batches/create', [BatchController::class, 'create'])->name('batches.create');
+Route::get('/batches/{batch}', [BatchController::class, 'show'])->name('batches.show');
+Route::get('/batches/{batch}/edit', [BatchController::class, 'edit'])->name('batches.edit');
+Route::delete('/batches/{batch}', [BatchController::class, 'destroy'])->name('batches.destroy');
+Route::put('/batches/{batch}', [BatchController::class, 'update'])->name('batches.update');
+Route::post('/batches', [BatchController::class, 'store'])->name('batches.store');
 
 
 

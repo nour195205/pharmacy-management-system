@@ -35,6 +35,12 @@
                         <a class="nav-link" href="{{ route('suppliers.index') }}">الموردين</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ route('medicines.index') }}">الادويه</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('batches.index') }}">التشغيله</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url('/about') }}">عن النظام</a>
                     </li>
                     <li class="nav-item">
