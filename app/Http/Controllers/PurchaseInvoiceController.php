@@ -147,30 +147,184 @@ class PurchaseInvoiceController extends Controller
     /**
      * Display the specified resource.
      */
+    /**
+     * Display the specified resource.
+     */
     public function show(PurchaseInvoice $purchaseInvoice)
     {
-        // Load invoice items with medicine details
-        $purchaseInvoice->load('items.medicine', 'supplier');
+        // تحميل كل العلاقات اللازمة لعرض التفاصيل الكاملة
+        $purchaseInvoice->load('items.batch.medicine', 'branch', 'supplier', 'user');
         return view('purchase_invoices.show', compact('purchaseInvoice'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
+    /**
+     * Show the form for editing the specified resource.
+     */
     public function edit(PurchaseInvoice $purchaseInvoice)
     {
-        // Not implemented for now due to complexity of stock reversal.
-        return redirect()->route('purchase-invoices.index')->with('error', 'لا يمكن تعديل فاتورة مشتريات.');
+        // تحميل البيانات اللازمة للعلاقات لتجنب الأخطاء
+        $purchaseInvoice->load('items.batch.medicine', 'branch', 'supplier');
+
+        $branches = \App\Models\Branch::all();
+        $suppliers = \App\Models\Supplier::all();
+        $medicines = \App\Models\Medicine::all();
+
+        return view('purchase_invoices.edit', compact('purchaseInvoice', 'branches', 'suppliers', 'medicines'));
     }
 
     /**
      * Update the specified resource in storage.
      */
+    /**
+     * Update the specified resource in storage.
+     */
+    // public function update(Request $request, PurchaseInvoice $purchaseInvoice)
+    // {
+    //     $request->validate([
+    //         'branch_id' => 'required|exists:branches,id',
+    //         'supplier_id' => 'required|exists:suppliers,id',
+    //         'invoice_date' => 'required|date',
+    //         'items' => 'required|array|min:1',
+    //         'items.*.medicine_id' => 'required|exists:medicines,id',
+    //         'items.*.quantity' => 'required|integer|min:1',
+    //         'items.*.purchase_price' => 'required|numeric|min:0',
+    //         'items.*.selling_price' => 'required|numeric|min:0|gt:items.*.purchase_price',
+    //         'items.*.manufacture_date' => 'required|date',
+    //         'items.*.expiry_date' => 'required|date|after:items.*.manufacture_date',
+    //     ]);
+
+    //     DB::beginTransaction();
+    //     try {
+    //         // الخطوة 1: حذف كل البنود والتشغيلات القديمة المتعلقة بالفاتورة
+    //         // هذا يعكس المخزون تلقائيًا
+    //         foreach ($purchaseInvoice->items as $oldItem) {
+    //             $oldItem->batch()->delete(); // حذف التشغيلة المرتبطة
+    //             $oldItem->delete(); // حذف بند الفاتورة
+    //         }
+
+    //         $totalAmount = 0;
+
+    //         // الخطوة 2: إضافة البنود والتشغيلات الجديدة كما لو كانت فاتورة جديدة
+    //         foreach ($request->items as $itemData) {
+    //             $medicine = \App\Models\Medicine::find($itemData['medicine_id']);
+
+    //             // إنشاء تشغيلة جديدة
+    //             $batch = \App\Models\Batch::create([
+    //                 'branch_id' => $request->branch_id,
+    //                 'medicine_id' => $medicine->id,
+    //                 'batch_number' => 'BATCH-' . $medicine->id . '-' . time() . '-' . rand(100, 999),
+    //                 'manufacture_date' => $itemData['manufacture_date'],
+    //                 'expiry_date' => $itemData['expiry_date'],
+    //                 'quantity' => $itemData['quantity'],
+    //                 'purchase_price' => $itemData['purchase_price'],
+    //                 'selling_price' => $itemData['selling_price'],
+    //             ]);
+
+    //             // إنشاء بند فاتورة جديد
+    //             \App\Models\PurchaseInvoiceItem::create([
+    //                 'purchase_invoice_id' => $purchaseInvoice->id,
+    //                 'batch_id' => $batch->id,
+    //                 'qty' => $itemData['quantity'],
+    //                 'price' => $itemData['purchase_price'],
+    //                 'total' => $itemData['quantity'] * $itemData['purchase_price'],
+    //             ]);
+
+    //             $totalAmount += $itemData['quantity'] * $itemData['purchase_price'];
+    //         }
+
+    //         // الخطوة 3: تحديث بيانات الفاتورة الأساسية
+    //         $purchaseInvoice->update([
+    //             'branch_id' => $request->branch_id,
+    //             'supplier_id' => $request->supplier_id,
+    //             'invoice_date' => $request->invoice_date,
+    //             'total_amount' => $totalAmount,
+    //         ]);
+
+    //         DB::commit();
+
+    //         return redirect()->route('purchase-invoices.index')->with('success', 'تم تعديل فاتورة المشتريات بنجاح!');
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         // يمكنك استخدام هذا السطر مؤقتاً لكشف أي أخطاء جديدة
+    //         dd($e);
+    //         // return redirect()->back()->with('error', 'حدث خطأ أثناء تعديل الفاتورة: ' . $e->getMessage())->withInput();
+    //     }
+    // }  
+    /**
+     * Update the specified resource in storage.
+     */
     public function update(Request $request, PurchaseInvoice $purchaseInvoice)
     {
-        // Not implemented for now.
-    }
+        $request->validate([
+            'branch_id' => 'required|exists:branches,id',
+            'supplier_id' => 'required|exists:suppliers,id',
+            'invoice_date' => 'required|date',
+            'items' => 'required|array|min:1',
+            'items.*.medicine_id' => 'required|exists:medicines,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.purchase_price' => 'required|numeric|min:0',
+            'items.*.selling_price' => 'required|numeric|min:0|gt:items.*.purchase_price',
+            'items.*.manufacture_date' => 'required|date',
+            'items.*.expiry_date' => 'required|date|after:items.*.manufacture_date',
+        ]);
 
+        DB::beginTransaction();
+        try {
+            // الخطوة 1: حذف كل البنود والتشغيلات القديمة المتعلقة بالفاتورة
+            foreach ($purchaseInvoice->items as $oldItem) {
+                $oldItem->batch()->delete(); // حذف التشغيلة المرتبطة
+                $oldItem->delete(); // حذف بند الفاتورة
+            }
+
+            $totalAmount = 0;
+
+            // الخطوة 2: إضافة البنود والتشغيلات الجديدة
+            foreach ($request->items as $itemData) {
+                $medicine = \App\Models\Medicine::find($itemData['medicine_id']);
+
+                $batch = \App\Models\Batch::create([
+                    'branch_id' => $request->branch_id,
+                    'medicine_id' => $medicine->id,
+                    'batch_number' => 'BATCH-' . $medicine->id . '-' . time() . '-' . rand(100, 999),
+                    'manufacture_date' => $itemData['manufacture_date'],
+                    'expiry_date' => $itemData['expiry_date'],
+                    'quantity' => $itemData['quantity'],
+                    'purchase_price' => $itemData['purchase_price'],
+                    'selling_price' => $itemData['selling_price'],
+                ]);
+
+                \App\Models\PurchaseInvoiceItem::create([
+                    'purchase_invoice_id' => $purchaseInvoice->id,
+                    'batch_id' => $batch->id,
+                    'qty' => $itemData['quantity'],
+                    'price' => $itemData['purchase_price'],
+                    'total' => $itemData['quantity'] * $itemData['purchase_price'],
+                ]);
+
+                $totalAmount += $itemData['quantity'] * $itemData['purchase_price'];
+            }
+
+            // الخطوة 3: تحديث بيانات الفاتورة الأساسية
+            $purchaseInvoice->update([
+                'branch_id' => $request->branch_id,
+                'supplier_id' => $request->supplier_id,
+                'invoice_date' => $request->invoice_date,
+                'total_amount' => $totalAmount,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('purchase-invoices.index')->with('success', 'تم تعديل فاتورة المشتريات بنجاح!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'حدث خطأ أثناء تعديل الفاتورة: ' . $e->getMessage())->withInput();
+        }
+    }
     /**
      * Remove the specified resource from storage.
      */
@@ -202,10 +356,13 @@ class PurchaseInvoiceController extends Controller
 
     }
 
+    /**
+     * Show the specified resource for printing.
+     */
     public function print(PurchaseInvoice $purchaseInvoice)
     {
-        // Load invoice items with medicine details for printing
-        $purchaseInvoice->load('items.medicine', 'supplier', 'user');
+        // تحميل كل العلاقات اللازمة لعرض التفاصيل الكاملة في صفحة الطباعة
+        $purchaseInvoice->load('items.batch.medicine', 'branch', 'supplier', 'user');
         return view('purchase_invoices.print', compact('purchaseInvoice'));
     }
 }
