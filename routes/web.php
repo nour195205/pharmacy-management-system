@@ -45,6 +45,13 @@ Route::delete('/batches/{batch}', [BatchController::class, 'destroy'])->name('ba
 Route::put('/batches/{batch}', [BatchController::class, 'update'])->name('batches.update');
 Route::post('/batches', [BatchController::class, 'store'])->name('batches.store');
 
+use App\Http\Controllers\PurchaseInvoiceController;
+
+Route::middleware('auth')->group(function () {
+    Route::resource('purchase-invoices', PurchaseInvoiceController::class);
+    Route::get('purchase-invoices/{purchaseInvoice}/print', [PurchaseInvoiceController::class, 'print'])->name('purchase-invoices.print');
+});
+
 
 
 Route::middleware('auth')->group(function () {

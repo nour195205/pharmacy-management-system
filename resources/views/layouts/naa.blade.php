@@ -27,7 +27,7 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">                    
+                <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('branches.index') }}">الفروع</a>
                     </li>
@@ -40,6 +40,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('batches.index') }}">التشغيله</a>
                     </li>
+                    {{-- ====== الزر الجديد الذي تمت إضافته ====== --}}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('purchase-invoices.index') }}">المشتريات</a>
+                    </li>
+                    {{-- ========================================== --}}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url('/about') }}">عن النظام</a>
                     </li>
