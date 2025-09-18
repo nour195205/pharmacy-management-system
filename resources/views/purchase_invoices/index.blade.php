@@ -53,6 +53,7 @@
                                 <td>
                                     <a href="{{ route('purchase-invoices.show', $invoice->id) }}" class="btn btn-sm btn-info">عرض</a>
                                     <a href="{{ route('purchase-invoices.edit', $invoice->id) }}" class="btn btn-sm btn-warning">تعديل</a>
+                                    <a href="{{ route('purchase-returns.create', ['invoice_id' => $invoice->id]) }}" class="btn btn-sm btn-dark">إرجاع</a>
                                     <a href="{{ route('purchase-invoices.print', $invoice->id) }}" class="btn btn-sm btn-secondary">طباعة</a>
                                     <form action="{{ route('purchase-invoices.destroy', $invoice->id) }}" method="POST" class="d-inline" onsubmit="return confirm('هل أنت متأكد من حذف هذه الفاتورة؟')">
                                         @csrf

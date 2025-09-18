@@ -46,6 +46,9 @@
                     </li>
                     {{-- ========================================== --}}
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ route('purchase-returns.index') }}">مرتجعات المشتريات</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url('/about') }}">عن النظام</a>
                     </li>
                     <li class="nav-item">
@@ -59,6 +62,18 @@
 
     {{-- محتوى الصفحة --}}
     <main class="flex-fill">
+        <div class="container">
+            @if (session('success'))
+                <div class="alert alert-success mt-4">
+                    {{ session('success') }}
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="alert alert-danger mt-4">
+                    {{ session('error') }}
+                </div>
+            @endif
+        </div>
         @yield('content')
     </main>
 

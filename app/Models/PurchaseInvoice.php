@@ -63,4 +63,9 @@ class PurchaseInvoice extends Model
     {
         return $this->belongsTo(Branch::class);
     }
+
+    public function returns()
+{
+    return $this->hasMany(PurchaseReturn::class);
+}
 }

@@ -52,6 +52,9 @@ Route::middleware('auth')->group(function () {
     Route::get('purchase-invoices/{purchaseInvoice}/print', [PurchaseInvoiceController::class, 'print'])->name('purchase-invoices.print');
 });
 
+use App\Http\Controllers\PurchaseReturnController;
+
+Route::resource('purchase-returns', PurchaseReturnController::class);
 
 
 Route::middleware('auth')->group(function () {
