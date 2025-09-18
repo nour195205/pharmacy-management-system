@@ -52,6 +52,9 @@
                         <a class="nav-link" href="{{ route('sales-invoices.index') }}">المبيعات</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ route('sales-returns.index') }}">مرتجعات المبيعات</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url('/about') }}">عن النظام</a>
                     </li>
                     <li class="nav-item">

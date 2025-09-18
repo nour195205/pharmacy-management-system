@@ -33,4 +33,8 @@ class SalesInvoice extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+    public function returns()
+    {
+        return $this->hasMany(SalesReturn::class);
+    }
 }

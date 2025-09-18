@@ -31,6 +31,7 @@
                                         <a href="{{ route('sales-invoices.show', $invoice->id) }}" class="btn btn-sm btn-info">عرض</a>
                                         <a href="{{ route('sales-invoices.receipt', $invoice->id) }}" class="btn btn-sm btn-light" target="_blank">وصل</a>
                                         <a href="{{ route('sales-invoices.edit', $invoice->id) }}" class="btn btn-sm btn-warning">تعديل</a>
+                                        <a href="{{ route('sales-returns.create', ['invoice_id' => $invoice->id]) }}" class="btn btn-sm btn-dark">إرجاع</a>
                                         <form action="{{ route('sales-invoices.destroy', $invoice->id) }}" method="POST" class="d-inline" onsubmit="return confirm('هل أنت متأكد من حذف هذه الفاتورة؟ سيتم إرجاع الكميات المباعة للمخزون.')">
                                             @csrf
                                             @method('DELETE')

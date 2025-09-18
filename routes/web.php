@@ -8,7 +8,7 @@ use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\BatchController;
 use App\Http\Controllers\SalesInvoiceController;
 use App\Http\Controllers\PurchaseReturnController;
-
+use App\Http\Controllers\SalesReturnController;
 
 Route::get('/', function () {  
     return view('welcome');
@@ -60,6 +60,8 @@ Route::resource('purchase-returns', PurchaseReturnController::class);
 Route::resource('sales-invoices', SalesInvoiceController::class);
 Route::get('sales-invoices/{salesInvoice}/print', [SalesInvoiceController::class, 'print'])->name('sales-invoices.print');
 Route::get('sales-invoices/{salesInvoice}/receipt', [App\Http\Controllers\SalesInvoiceController::class, 'receipt'])->name('sales-invoices.receipt');
+
+Route::resource('sales-returns', SalesReturnController::class);
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
