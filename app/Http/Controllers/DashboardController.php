@@ -17,31 +17,28 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // --- الإحصائيات العامة ---
         $totalMedicines = Medicine::count();
         $totalSuppliers = Supplier::count();
         
-        // --- إحصائيات المبيعات والمشتريات (الصافي) ---
         $today = Carbon::today();
 
-        // حساب صافي المبيعات
         $grossSalesToday = SalesInvoice::whereDate('date', $today)->sum('total');
         $salesReturnsToday = SalesReturn::whereDate('date', $today)->sum('total');
         $netSalesToday = $grossSalesToday - $salesReturnsToday;
 
-        // حساب صافي المشتريات
         $grossPurchasesToday = PurchaseInvoice::whereDate('invoice_date', $today)->sum('total_amount');
         $purchaseReturnsToday = PurchaseReturn::whereDate('date', $today)->sum('total');
         $netPurchasesToday = $grossPurchasesToday - $purchaseReturnsToday;
 
-        // --- الأدوية التي على وشك النفاذ ---
         // ====== ابدأ التعديل هنا ======
-        $lowStockMedicines = Batch::select('medicine_id', DB::raw('SUM(quantity) as total_quantity'))
-            ->groupBy('medicine_id')
-            // نستخدم having مرتين بدلاً من where للتحقق من القيم المجمعة
-            ->having('total_quantity', '<=', 10)
-            ->having('total_quantity', '>', 0)
-            ->with('medicine')
+        // --- الأدوية التي على وشك النفاذ (بناءً على حد إعادة الطلب) ---
+        $lowStockMedicines = Batch::join('medicines', 'batches.medicine_id', '=', 'medicines.id')
+            ->select(
+                'medicines.name as medicine_name', // اختيار اسم الدواء مباشرة
+                DB::raw('SUM(batches.quantity) as total_quantity')
+            )
+            ->groupBy('medicines.id', 'medicines.name', 'medicines.reorder_level')
+            ->havingRaw('SUM(batches.quantity) <= medicines.reorder_level AND SUM(batches.quantity) > 0')
             ->get();
         // ====== انتهي من التعديل هنا ======
             
