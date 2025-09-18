@@ -9,6 +9,12 @@
         <a href="{{ route('customers.create') }}" class="btn btn-primary">إضافة عميل جديد</a>
     </div>
 
+    {{-- ====== ابدأ الإضافة هنا (حقل البحث) ====== --}}
+    <div class="mb-3">
+        <input type="text" id="searchInput" class="form-control" placeholder="ابحث بالاسم أو رقم الهاتف...">
+    </div>
+    {{-- ======================================= --}}
+
     <div class="card shadow-sm">
         <div class="card-body">
             <div class="table-responsive">
@@ -23,7 +29,8 @@
                             <th>إجراءات</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    {{-- أضفنا id للـ tbody ليسهل الوصول إليه --}}
+                    <tbody id="customersTable">
                         @forelse ($customers as $customer)
                             <tr>
                                 <td>{{ $customer->id }}</td>
@@ -60,3 +67,38 @@
     </div>
 </div>
 @endsection
+
+{{-- ====== ابدأ الإضافة هنا (كود JavaScript) ====== --}}
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const tableBody = document.getElementById('customersTable');
+    const tableRows = tableBody.getElementsByTagName('tr');
+
+    searchInput.addEventListener('keyup', function(event) {
+        const searchTerm = event.target.value.toLowerCase();
+
+        for (let i = 0; i < tableRows.length; i++) {
+            const row = tableRows[i];
+
+            if (row.getElementsByTagName('td').length < 2) {
+                continue;
+            }
+
+            // [1] هو العمود الثاني (الاسم), [2] هو العمود الثالث (الهاتف)
+            const customerName = row.getElementsByTagName('td')[1].textContent.toLowerCase();
+            const customerPhone = row.getElementsByTagName('td')[2].textContent.toLowerCase();
+
+            // إظهار الصف إذا كان الاسم أو الهاتف يحتوي على كلمة البحث
+            if (customerName.includes(searchTerm) || customerPhone.includes(searchTerm)) {
+                row.style.display = ''; // أظهر الصف
+            } else {
+                row.style.display = 'none'; // أخفِ الصف
+            }
+        }
+    });
+});
+</script>
+@endpush
+{{-- =========================================== --}}

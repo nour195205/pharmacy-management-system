@@ -4,66 +4,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'نظام إدارة الفروع')</title>
+    <title>@yield('title', 'نظام إدارة الصيدليات')</title>
 
     {{-- Bootstrap CSS --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    {{-- CSS مخصص --}}
-    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    
+    {{-- Select2 CSS --}}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    {{-- Custom CSS --}}
+    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 
     @stack('styles')
 </head>
 
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100 bg-light">
 
     {{-- Navbar --}}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="{{ route('welcome') }}">نظام الإدارة</a>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="{{ route('dashboard') }}">نظام الصيدلية</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('branches.index') }}">الفروع</a>
+                        <a class="nav-link active" aria-current="page" href="{{ route('dashboard') }}">الرئيسية</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('suppliers.index') }}">الموردين</a>
+
+                    {{-- قائمة المخزون --}}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="inventoryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            المخزون
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="inventoryDropdown">
+                            <li><a class="dropdown-item" href="{{ route('medicines.index') }}">الأدوية</a></li>
+                            <li><a class="dropdown-item" href="{{ route('batches.index') }}">التشغيلات (المخزون الفعلي)</a></li>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('medicines.index') }}">الادويه</a>
+
+                    {{-- قائمة المشتريات --}}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="purchasesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            المشتريات
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="purchasesDropdown">
+                            <li><a class="dropdown-item" href="{{ route('purchase-invoices.index') }}">فواتير المشتريات</a></li>
+                            <li><a class="dropdown-item" href="{{ route('purchase-returns.index') }}">مرتجعات المشتريات</a></li>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('batches.index') }}">التشغيله</a>
+
+                    {{-- قائمة المبيعات --}}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="salesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            المبيعات
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="salesDropdown">
+                            <li><a class="dropdown-item" href="{{ route('sales-invoices.index') }}">فواتير المبيعات</a></li>
+                            <li><a class="dropdown-item" href="{{ route('sales-returns.index') }}">مرتجعات المبيعات</a></li>
+                        </ul>
                     </li>
-                    {{-- ====== الزر الجديد الذي تمت إضافته ====== --}}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('purchase-invoices.index') }}">المشتريات</a>
+
+                    {{-- قائمة البيانات الأساسية --}}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="coreDataDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            البيانات الأساسية
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="coreDataDropdown">
+                            <li><a class="dropdown-item" href="{{ route('branches.index') }}">الفروع</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ route('suppliers.index') }}">الموردين</a></li>
+                            <li><a class="dropdown-item" href="{{ route('customers.index') }}">العملاء</a></li>
+                        </ul>
                     </li>
-                    {{-- ========================================== --}}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('purchase-returns.index') }}">مرتجعات المشتريات</a>
+                </ul>
+
+                {{-- الجزء الخاص بالمستخدم وتسجيل الخروج --}}
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    @auth
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ Auth::user()->name }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="{{ route('profile.edit') }}">الملف الشخصي</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item">تسجيل الخروج</button>
+                                </form>
+                            </li>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('sales-invoices.index') }}">المبيعات</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('sales-returns.index') }}">مرتجعات المبيعات</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('customers.index') }}">العملاء</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url('/about') }}">عن النظام</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url('/contact') }}">تواصل معنا</a>
-                    </li>
+                    @endauth
                 </ul>
             </div>
         </div>
@@ -71,16 +108,18 @@
 
 
     {{-- محتوى الصفحة --}}
-    <main class="flex-fill">
+    <main class="flex-fill py-4">
         <div class="container">
             @if (session('success'))
-                <div class="alert alert-success mt-4">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
                     {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
             @if (session('error'))
-                <div class="alert alert-danger mt-4">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
         </div>
@@ -94,13 +133,13 @@
         </div>
     </footer>
 
-    {{-- Bootstrap JS --}}
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {{-- jQuery (يجب أن يكون قبل Bootstrap و Select2) --}}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     {{-- Bootstrap JS --}}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     {{-- Select2 JS --}}
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
     @stack('scripts')
 </body>
 
