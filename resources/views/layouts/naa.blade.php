@@ -11,7 +11,7 @@
 
     {{-- CSS مخصص --}}
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
     @stack('styles')
 </head>
@@ -56,6 +56,9 @@
                         <a class="nav-link" href="{{ route('sales-returns.index') }}">مرتجعات المبيعات</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ route('customers.index') }}">العملاء</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url('/about') }}">عن النظام</a>
                     </li>
                     <li class="nav-item">
@@ -93,7 +96,7 @@
 
     {{-- Bootstrap JS --}}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     {{-- Bootstrap JS --}}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     {{-- Select2 JS --}}

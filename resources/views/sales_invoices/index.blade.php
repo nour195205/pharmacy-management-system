@@ -10,6 +10,7 @@
                         <thead class="table-dark">
                             <tr>
                                 <th>رقم الفاتورة</th>
+                                <th>العميل</th> {{-- <-- عمود جديد --}}
                                 <th>الفرع</th>
                                 <th>التاريخ</th>
                                 <th>الحالة</th>
@@ -22,6 +23,7 @@
                             @forelse ($invoices as $invoice)
                                 <tr>
                                     <td>#{{ $invoice->id }}</td>
+                                    <td>{{ $invoice->customer->name ?? 'بيع نقدي' }}</td> {{-- <-- حقل جديد --}}
                                     <td>{{ $invoice->branch->name }}</td>
                                     <td>{{ \Carbon\Carbon::parse($invoice->date)->format('Y-m-d') }}</td>
                                     <td><span class="badge bg-success">{{ $invoice->status }}</span></td>

@@ -24,6 +24,8 @@ class PurchaseReturn extends Model
         'created_by',
     ];
 
+    
+
     public function purchaseInvoice()
     {
         return $this->belongsTo(PurchaseInvoice::class);

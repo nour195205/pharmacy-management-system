@@ -11,6 +11,7 @@ class SalesInvoice extends Model
 
     protected $fillable = [
         'branch_id',
+        'customer_id',
         'date',
         'total',
         'status',
@@ -36,5 +37,10 @@ class SalesInvoice extends Model
     public function returns()
     {
         return $this->hasMany(SalesReturn::class);
+    }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
     }
 }

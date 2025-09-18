@@ -45,43 +45,49 @@ class SalesReturnController extends Controller
             'sales_invoice_id' => 'required|exists:sales_invoices,id',
             'date' => 'required|date',
             'reason' => 'nullable|string',
-            'items' => 'required|array|min:1',
+            'items' => 'required|array', // تم تعديل هذا السطر
             'items.*.sales_item_id' => 'required|exists:sales_invoice_items,id',
-            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.quantity' => 'nullable|numeric|min:0', // تم تعديل هذا السطر ليقبل الصفر
         ]);
 
         DB::beginTransaction();
         try {
-            $invoice = SalesInvoice::findOrFail($request->sales_invoice_id);
+            $invoice = \App\Models\SalesInvoice::findOrFail($request->sales_invoice_id);
             $totalReturnAmount = 0;
-            $returnedItemsCount = 0;
+            $returnedItemsCount = 0; // عداد للتحقق من وجود مرتجعات
             $currentUser = auth()->id();
 
-            $salesReturn = SalesReturn::create([
+            // إنشاء فاتورة المرتجع الرئيسية أولاً
+            $salesReturn = \App\Models\SalesReturn::create([
                 'sales_invoice_id' => $invoice->id,
                 'date' => $request->date,
                 'reason' => $request->reason,
                 'created_by' => $currentUser,
-                'total' => 0, // سيتم تحديثه
+                'total' => 0,
             ]);
 
             foreach ($request->items as $itemData) {
-                if (empty($itemData['quantity']) || $itemData['quantity'] <= 0) continue;
+                // ====== ابدأ التعديل هنا ======
+                // تجاهل أي منتج لم يتم تحديد كمية لإرجاعه (أهم سطر)
+                if (empty($itemData['quantity']) || $itemData['quantity'] <= 0) {
+                    continue;
+                }
+                
+                $returnedItemsCount++; // زيادة العداد فقط للمنتجات المرتجعة فعليًا
+                // ====== انتهي من التعديل هنا ======
 
-                $returnedItemsCount++;
                 $salesItem = \App\Models\SalesInvoiceItem::findOrFail($itemData['sales_item_id']);
                 $batch = $salesItem->batch;
 
-                // التحقق من أن الكمية المرتجعة لا تتجاوز الكمية التي تم بيعها أصلاً
                 if ($itemData['quantity'] > $salesItem->qty) {
-                    throw new \Exception("الكمية المرتجعة للدواء {$batch->medicine->name} ({$itemData['quantity']}) تتجاوز الكمية المباعة ({$salesItem->qty}).");
+                    throw new \Exception("الكمية المرتجعة للدواء {$batch->medicine->name} تتجاوز الكمية المباعة.");
                 }
 
                 $sellingPrice = $salesItem->price;
                 $total = $itemData['quantity'] * $sellingPrice;
                 $totalReturnAmount += $total;
 
-                SalesReturnItem::create([
+                \App\Models\SalesReturnItem::create([
                     'sales_return_id' => $salesReturn->id,
                     'batch_id' => $batch->id,
                     'quantity' => $itemData['quantity'],
@@ -89,13 +95,15 @@ class SalesReturnController extends Controller
                     'total' => $total,
                 ]);
 
-                // أهم خطوة: إرجاع الكمية إلى المخزون (التشغيلة)
                 $batch->increment('quantity', $itemData['quantity']);
             }
             
+            // ====== إضافة تحقق جديد ======
+            // إذا لم يتم إرجاع أي منتج، أرجع رسالة خطأ
             if ($returnedItemsCount === 0) {
-                throw new \Exception("يجب إرجاع كمية واحدة على الأقل.");
+                throw new \Exception("يجب إرجاع كمية واحدة على الأقل من منتج واحد لإتمام العملية.");
             }
+            // =========================
 
             $salesReturn->update(['total' => $totalReturnAmount]);
 
@@ -108,4 +116,16 @@ class SalesReturnController extends Controller
             return redirect()->back()->with('error', 'حدث خطأ: ' . $e->getMessage())->withInput();
         }
     }
+
+    public function show(SalesReturn $salesReturn)
+    {
+        // تحميل كل العلاقات اللازمة لعرض التفاصيل
+        $salesReturn->load('items.batch.medicine', 'salesInvoice', 'creator');
+        return view('sales_returns.show', compact('salesReturn'));
+    }
+    public function receipt(SalesReturn $salesReturn)
+{
+    $salesReturn->load('items.batch.medicine', 'salesInvoice', 'creator');
+    return view('sales_returns.receipt', compact('salesReturn'));
+}
 }

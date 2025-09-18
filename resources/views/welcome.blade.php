@@ -9,16 +9,16 @@
         <div class="col-md-3 mb-4">
             <div class="card text-white bg-primary shadow">
                 <div class="card-body">
-                    <h5 class="card-title">إجمالي المبيعات (اليوم)</h5>
-                    <p class="card-text fs-4 fw-bold">{{ number_format($salesToday, 2) }} جنيه</p>
+                    <h5 class="card-title">صافي المبيعات (اليوم)</h5>
+                    <p class="card-text fs-4 fw-bold">{{ number_format($netSalesToday, 2) }} جنيه</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3 mb-4">
             <div class="card text-white bg-info shadow">
                 <div class="card-body">
-                    <h5 class="card-title">إجمالي المشتريات (اليوم)</h5>
-                    <p class="card-text fs-4 fw-bold">{{ number_format($purchasesToday, 2) }} جنيه</p>
+                    <h5 class="card-title">صافي المشتريات (اليوم)</h5>
+                    <p class="card-text fs-4 fw-bold">{{ number_format($netPurchasesToday, 2) }} جنيه</p>
                 </div>
             </div>
         </div>

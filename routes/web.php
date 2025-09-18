@@ -9,15 +9,18 @@ use App\Http\Controllers\BatchController;
 use App\Http\Controllers\SalesInvoiceController;
 use App\Http\Controllers\PurchaseReturnController;
 use App\Http\Controllers\SalesReturnController;
-
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 
 
- Route::get('/', [DashboardController::class, 'index'])->name('welcome');
+Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('welcome'); // مسار إضافي للداش بورد
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+//  Route::get('/', [DashboardController::class, 'index'])->name('welcome');
+
+// Route::get('/dashboard', function () {
+//     return view('dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/branches', [BranchController::class, 'index'])->name('branches.index');
 Route::get('/branches/create', [BranchController::class, 'create'])->name('branches.create');
@@ -63,6 +66,9 @@ Route::get('sales-invoices/{salesInvoice}/print', [SalesInvoiceController::class
 Route::get('sales-invoices/{salesInvoice}/receipt', [App\Http\Controllers\SalesInvoiceController::class, 'receipt'])->name('sales-invoices.receipt');
 
 Route::resource('sales-returns', SalesReturnController::class);
+Route::get('sales-returns/{salesReturn}/receipt', [SalesReturnController::class, 'receipt'])->name('sales-returns.receipt');
+
+Route::resource('customers', CustomerController::class);
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

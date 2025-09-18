@@ -19,6 +19,7 @@
                 <div class="col-md-6">
                     <h5>معلومات الفاتورة:</h5>
                     <ul class="list-group list-group-flush">
+                        <li class="list-group-item px-0"><strong>العميل:</strong> {{ $salesInvoice->customer->name ?? 'بيع نقدي مباشر' }}</li>
                         <li class="list-group-item px-0"><strong>الفرع:</strong> {{ $salesInvoice->branch->name }}</li>
                         <li class="list-group-item px-0"><strong>التاريخ:</strong> {{ \Carbon\Carbon::parse($salesInvoice->date)->format('Y-m-d') }}</li>
                         <li class="list-group-item px-0"><strong>الحالة:</strong> <span class="badge bg-success">{{ $salesInvoice->status }}</span></li>
