@@ -28,7 +28,7 @@ return new class extends Migration {
             $table->foreignId('medicine_id')->constrained()->onDelete('cascade');
             $table->string('batch_number')->unique();            $table->date('manufacture_date');
             $table->date('expiry_date');
-            $table->integer('quantity');
+            $table->decimal('quantity', 8, 2);
             $table->integer('purchase_price');
             $table->integer('selling_price');
             $table->foreignId('branch_id')->constrained()->onDelete('cascade');

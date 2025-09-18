@@ -6,6 +6,9 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\BatchController;
+use App\Http\Controllers\SalesInvoiceController;
+use App\Http\Controllers\PurchaseReturnController;
+
 
 Route::get('/', function () {  
     return view('welcome');
@@ -52,10 +55,11 @@ Route::middleware('auth')->group(function () {
     Route::get('purchase-invoices/{purchaseInvoice}/print', [PurchaseInvoiceController::class, 'print'])->name('purchase-invoices.print');
 });
 
-use App\Http\Controllers\PurchaseReturnController;
-
 Route::resource('purchase-returns', PurchaseReturnController::class);
 
+Route::resource('sales-invoices', SalesInvoiceController::class);
+Route::get('sales-invoices/{salesInvoice}/print', [SalesInvoiceController::class, 'print'])->name('sales-invoices.print');
+Route::get('sales-invoices/{salesInvoice}/receipt', [App\Http\Controllers\SalesInvoiceController::class, 'receipt'])->name('sales-invoices.receipt');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
