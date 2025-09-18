@@ -10,9 +10,10 @@ use App\Http\Controllers\SalesInvoiceController;
 use App\Http\Controllers\PurchaseReturnController;
 use App\Http\Controllers\SalesReturnController;
 
-Route::get('/', function () {  
-    return view('welcome');
-});
+use App\Http\Controllers\DashboardController;
+
+
+ Route::get('/', [DashboardController::class, 'index'])->name('welcome');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
