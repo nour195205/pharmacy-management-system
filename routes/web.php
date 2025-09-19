@@ -11,6 +11,7 @@ use App\Http\Controllers\PurchaseReturnController;
 use App\Http\Controllers\SalesReturnController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PaymentController;
 
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
@@ -69,6 +70,9 @@ Route::resource('sales-returns', SalesReturnController::class);
 Route::get('sales-returns/{salesReturn}/receipt', [SalesReturnController::class, 'receipt'])->name('sales-returns.receipt');
 
 Route::resource('customers', CustomerController::class);
+
+Route::get('/customers/{customer}/payments/create', [PaymentController::class, 'create'])->name('customers.payments.create');
+Route::post('/customers/{customer}/payments', [PaymentController::class, 'store'])->name('customers.payments.store');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
