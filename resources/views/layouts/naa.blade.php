@@ -141,6 +141,54 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     
     @stack('scripts')
+
+    {{-- ... أكواد JS الحالية مثل jQuery و Bootstrap تبقى كما هي ... --}}
+    @stack('scripts')
+
+    {{-- ==================== ابدأ بإضافة الكود التالي ==================== --}}
+    <script>
+        $(document).ready(function() {
+            // === الجزء الأول: تفعيل اختصار F1 للتركيز على البحث ===
+            $(document).on('keydown', function(e) {
+                // لا تفعل شيئاً إذا كان المستخدم يكتب بالفعل في أي حقل
+                if ($(e.target).is('input, textarea, select')) {
+                    return;
+                }
+                // عند الضغط على F1
+                if (e.key === 'F1') {
+                    e.preventDefault(); // منع السلوك الافتراضي للزر (فتح المساعدة)
+
+                    const searchInput = $('#page-search-input');
+                    if (searchInput.length > 0) {
+                        searchInput.focus(); // قم بالتركيز على حقل البحث العادي
+                    }
+                }
+            });
+
+            // === الجزء الثاني: تنفيذ البحث الفوري في الجداول العادية ===
+            const searchInput = $('#page-search-input');
+            if (searchInput.length > 0) {
+                searchInput.on('keyup input', function() {
+                    const searchTerm = $(this).val().toLowerCase();
+                    
+                    // ابحث في كل صف من صفوف الجدول المستهدف
+                    $('#data-table tbody tr').each(function() {
+                        const rowText = $(this).text().toLowerCase();
+                        
+                        // إذا كان نص الصف يحتوي على كلمة البحث، أظهره، وإلا أخفه
+                        if (rowText.includes(searchTerm)) {
+                            $(this).show();
+                        } else {
+                            $(this).hide();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+    {{-- ==================== انتهى الكود المضاف ==================== --}}
+
+
 </body>
 
 </html>

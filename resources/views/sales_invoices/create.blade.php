@@ -73,12 +73,10 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    // --- تهيئة العناصر الأساسية ---
     const itemsContainer = $('#invoice-items-container');
     const totalAmountSpan = $('#total-amount');
     let itemIndex = 0;
     
-    // تخزين بيانات التشغيلات في متغير JavaScript لسهولة البحث
     const availableBatchesData = [
         @foreach ($availableBatches as $batch)
         {
@@ -91,42 +89,28 @@ $(document).ready(function() {
         @endforeach
     ];
 
-    // --- تفعيل Select2 ---
     $('.customer-select').select2({
         placeholder: '-- بيع نقدي أو اختر عميل --',
         language: "ar",
         allowClear: true
     });
 
-    // ====== ابدأ التعديل هنا (إضافة دالة البحث المخصصة) ======
     $('#medicine_search').select2({
         placeholder: 'ابحث بالاسم أو الباركود أو اختر من القائمة...',
         language: "ar",
         data: availableBatchesData,
         matcher: function(params, data) {
-            // إذا كان مربع البحث فارغًا، لا تظهر أي نتائج
-            if ($.trim(params.term) === '') {
-                return null;
-            }
-
-            // تحويل كل شيء إلى حروف صغيرة لسهولة المقارنة
+            if ($.trim(params.term) === '') { return null; }
             const term = params.term.toLowerCase();
             const text = data.text.toLowerCase();
             const barcode = data.barcode ? data.barcode.toLowerCase() : '';
-
-            // تحقق إذا كان الاسم أو الباركود يحتوي على كلمة البحث
             if (text.indexOf(term) > -1 || barcode.indexOf(term) > -1) {
                 return data;
             }
-
-            // إذا لم يتم العثور على تطابق، لا تظهر النتيجة
             return null;
         }
     });
-    // ====== انتهي من التعديل هنا ======
 
-
-    // --- دالة لتحديث الإجمالي ---
     function updateTotalAmount() {
         let total = 0;
         $('.item-row').each(function() {
@@ -140,10 +124,8 @@ $(document).ready(function() {
         totalAmountSpan.text(total.toFixed(2));
     }
     
-    // --- دالة لإضافة أو تحديث بند في الفاتورة ---
     function addOrUpdateItem(batchData) {
         if (!batchData) return;
-
         let existingRow = itemsContainer.find(`.item-row[data-batch-id="${batchData.id}"]`);
 
         if (existingRow.length > 0) {
@@ -160,10 +142,7 @@ $(document).ready(function() {
             if (parseFloat(batchData.quantity) > 0) {
                  const itemHtml = `
                     <div class="row item-row gx-2 gy-2 align-items-center mb-3 p-3 border rounded bg-light" data-batch-id="${batchData.id}">
-                        <div class="col-lg-5">
-                            <input type="hidden" name="items[${itemIndex}][batch_id]" value="${batchData.id}">
-                            <input type="text" class="form-control bg-white" value="${batchData.text}" readonly>
-                        </div>
+                        <div class="col-lg-5"><input type="hidden" name="items[${itemIndex}][batch_id]" value="${batchData.id}"><input type="text" class="form-control bg-white" value="${batchData.text}" readonly></div>
                         <div class="col-lg-2 col-md-4"><div class="input-group"><span class="input-group-text">جنيه</span><span class="form-control bg-white price-span">${parseFloat(batchData.price).toFixed(2)}</span></div></div>
                         <div class="col-lg-2 col-md-4"><input type="number" name="items[${itemIndex}][quantity]" class="form-control quantity-input" value="1" min="0.1" max="${batchData.quantity}" step="0.1" required></div>
                         <div class="col-lg-2 col-md-4"><div class="input-group"><span class="input-group-text">جنيه</span><span class="form-control bg-white subtotal-span">${parseFloat(batchData.price).toFixed(2)}</span></div></div>
@@ -179,7 +158,6 @@ $(document).ready(function() {
         updateTotalAmount();
     }
 
-    // --- عند الاختيار اليدوي من مربع البحث ---
     $('#medicine_search').on('select2:select', function (e) {
         var data = e.params.data;
         addOrUpdateItem(data);
@@ -192,33 +170,35 @@ $(document).ready(function() {
         updateTotalAmount();
     });
 
-    // --- منطق الاسكانر التلقائي ---
     let barcode = '';
     let lastKeyTime = new Date();
-
     $(document).on('keydown', function(e) {
-        if ($(e.target).is('input, textarea') || $(e.target).closest('.select2-container').length) {
-            return;
-        }
-
+        if ($(e.target).is('input, textarea') || $(e.target).closest('.select2-container').length) { return; }
         const currentTime = new Date();
         if (currentTime - lastKeyTime > 100) { barcode = ''; }
-
         if (e.key === 'Enter') {
             e.preventDefault();
             if (barcode.length > 3) {
                 const batchData = availableBatchesData.find(batch => batch.barcode === barcode && parseFloat(batch.quantity) > 0);
-                if(batchData){
-                    addOrUpdateItem(batchData);
-                } else {
-                    alert('باركود غير موجود أو نفدت كميته من المخزون!');
-                }
+                if(batchData){ addOrUpdateItem(batchData); } else { alert('باركود غير موجود أو نفدت كميته!'); }
             }
             barcode = '';
         } else {
             if (e.key.length === 1) { barcode += e.key; }
         }
         lastKeyTime = currentTime;
+    });
+
+    // ==== كود اختصار F1 الخاص بالصفحة ====
+    $('#medicine_search').on('select2:open', () => {
+        setTimeout(() => { document.querySelector('.select2-search__field').focus(); }, 50); 
+    });
+    $(document).on('keydown', function(e) {
+        if ($(e.target).is('input, textarea, select')) { return; }
+        if (e.key === 'F1') {
+            e.preventDefault();
+            $('#medicine_search').select2('open');
+        }
     });
 });
 </script>

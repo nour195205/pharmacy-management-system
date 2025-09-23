@@ -76,7 +76,8 @@
                     {{-- الصفوف الديناميكية ستضاف هنا --}}
                 </div>
 
-                <div class="mt-5 text-end">
+                <div class="mt-5 d-flex justify-content-end align-items-center">
+                    <h4 class="me-4">الإجمالي: <span id="total-amount" class="fw-bold">0.00</span> جنيه</h4>
                     <button type="submit" class="btn btn-success btn-lg">حفظ الفاتورة</button>
                 </div>
             </form>
@@ -88,23 +89,21 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    // --- تهيئة العناصر الأساسية ---
     const itemsContainer = $('#invoice-items-container');
+    const totalAmountSpan = $('#total-amount');
     let itemIndex = 0;
     
-    // تخزين بيانات الأدوية في متغير JavaScript لسهولة البحث
     const medicinesData = [
         @foreach ($medicines as $medicine)
         {
             id: "{{ $medicine->id }}",
             text: "{{ $medicine->name }}",
             barcode: "{{ $medicine->barcode }}",
-            selling_price: "{{ $medicine->price }}" // استخدام السعر من جدول الأدوية كسعر بيع افتراضي
+            selling_price: "{{ $medicine->price }}"
         },
         @endforeach
     ];
 
-    // --- تفعيل Select2 ---
     $('#medicine_search').select2({
         placeholder: 'ابحث بالاسم أو الباركود أو اختر من القائمة...',
         language: "ar",
@@ -121,28 +120,33 @@ $(document).ready(function() {
         }
     });
 
-    // --- دالة لإضافة أو تحديث بند في الفاتورة ---
+    function updateTotalAmount() {
+        let total = 0;
+        $('.item-row').each(function() {
+            const row = $(this);
+            const quantity = parseFloat(row.find('.quantity-input').val()) || 0;
+            const price = parseFloat(row.find('.purchase-price-input').val()) || 0;
+            const subtotal = quantity * price;
+            total += subtotal;
+        });
+        totalAmountSpan.text(total.toFixed(2));
+    }
+
     function addOrUpdateItem(medicineData) {
         if (!medicineData) return;
 
         let existingRow = itemsContainer.find(`.item-row[data-medicine-id="${medicineData.id}"]`);
 
         if (existingRow.length > 0) {
-            // إذا كان موجودًا، قم بزيادة الكمية
             const quantityInput = existingRow.find('.quantity-input');
             let currentQuantity = parseInt(quantityInput.val()) || 0;
             quantityInput.val(currentQuantity + 1);
         } else {
-            // إذا لم يكن موجودًا، أضف سطرًا جديدًا
             const itemHtml = `
                 <div class="row item-row gx-2 gy-2 align-items-center mb-3 p-3 border rounded bg-light" data-medicine-id="${medicineData.id}">
-                    <div class="col-lg-3">
-                        <label class="form-label">الدواء</label>
-                        <input type="hidden" name="items[${itemIndex}][medicine_id]" value="${medicineData.id}">
-                        <input type="text" class="form-control bg-white" value="${medicineData.text}" readonly>
-                    </div>
+                    <div class="col-lg-3"><label class="form-label">الدواء</label><input type="hidden" name="items[${itemIndex}][medicine_id]" value="${medicineData.id}"><input type="text" class="form-control bg-white" value="${medicineData.text}" readonly></div>
                     <div class="col-lg-1 col-md-6"><label class="form-label">الكمية</label><input type="number" name="items[${itemIndex}][quantity]" class="form-control quantity-input" value="1" min="1" required></div>
-                    <div class="col-lg-2 col-md-6"><label class="form-label">سعر الشراء</label><input type="number" step="0.01" name="items[${itemIndex}][purchase_price]" class="form-control" min="0" required></div>
+                    <div class="col-lg-2 col-md-6"><label class="form-label">سعر الشراء</label><input type="number" step="0.01" name="items[${itemIndex}][purchase_price]" class="form-control purchase-price-input" min="0" required></div>
                     <div class="col-lg-2 col-md-6"><label class="form-label">سعر البيع</label><input type="number" step="0.01" name="items[${itemIndex}][selling_price]" class="form-control" value="${parseFloat(medicineData.selling_price).toFixed(2)}" min="0" required></div>
                     <div class="col-lg-2 col-md-6"><label class="form-label">تاريخ الإنتاج</label><input type="date" name="items[${itemIndex}][manufacture_date]" class="form-control" required></div>
                     <div class="col-lg-2 col-md-6"><label class="form-label">تاريخ الانتهاء</label><input type="date" name="items[${itemIndex}][expiry_date]" class="form-control" required></div>
@@ -152,46 +156,50 @@ $(document).ready(function() {
             itemsContainer.append(itemHtml);
             itemIndex++;
         }
+        updateTotalAmount();
     }
 
-    // --- عند الاختيار اليدوي من مربع البحث ---
     $('#medicine_search').on('select2:select', function (e) {
         var data = e.params.data;
         addOrUpdateItem(data);
         $(this).val(null).trigger('change');
     });
 
+    itemsContainer.on('input', '.quantity-input, .purchase-price-input', function() { updateTotalAmount(); });
     itemsContainer.on('click', '.remove-item-btn', function() {
         $(this).closest('.item-row').remove();
+        updateTotalAmount();
     });
 
-    // --- منطق الاسكانر التلقائي ---
     let barcode = '';
     let lastKeyTime = new Date();
-
     $(document).on('keydown', function(e) {
-        if ($(e.target).is('input, textarea') || $(e.target).closest('.select2-container').length) {
-            return;
-        }
-
+        if ($(e.target).is('input, textarea') || $(e.target).closest('.select2-container').length) { return; }
         const currentTime = new Date();
         if (currentTime - lastKeyTime > 100) { barcode = ''; }
-
         if (e.key === 'Enter') {
             e.preventDefault();
             if (barcode.length > 3) {
                 const medicineData = medicinesData.find(med => med.barcode === barcode);
-                if(medicineData){
-                    addOrUpdateItem(medicineData);
-                } else {
-                    alert('باركود غير موجود في قائمة الأدوية الأساسية!');
-                }
+                if(medicineData){ addOrUpdateItem(medicineData); } else { alert('باركود غير موجود!'); }
             }
             barcode = '';
         } else {
             if (e.key.length === 1) { barcode += e.key; }
         }
         lastKeyTime = currentTime;
+    });
+
+    // ==== كود اختصار F1 الخاص بالصفحة ====
+    $('#medicine_search').on('select2:open', () => {
+        setTimeout(() => { document.querySelector('.select2-search__field').focus(); }, 50); 
+    });
+    $(document).on('keydown', function(e) {
+        if ($(e.target).is('input, textarea, select')) { return; }
+        if (e.key === 'F1') {
+            e.preventDefault();
+            $('#medicine_search').select2('open');
+        }
     });
 });
 </script>

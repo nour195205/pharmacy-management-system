@@ -9,10 +9,13 @@
             </a>
         </div>
 
-
+        {{-- شريط البحث --}}
+        <div class="mb-3">
+            <input type="text" id="page-search-input" class="form-control" placeholder="ابحث في الفروع...">
+        </div>
 
         @if($branches->count() > 0)
-            <table class="table table-bordered table-striped">
+            <table id="data-table" class="table table-bordered table-striped"> {{-- أضفنا ID هنا --}}
                 <thead>
                     <tr>
                         <th>#</th>

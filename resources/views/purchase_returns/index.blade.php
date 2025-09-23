@@ -6,7 +6,6 @@
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>مرتجعات المشتريات</h1>
-        <a href="{{ route('purchase-returns.create') }}" class="btn btn-primary">إضافة مرتجع جديد</a>
     </div>
 
     @if (session('success'))
