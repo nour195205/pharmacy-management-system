@@ -13,6 +13,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PurchaseInvoiceController;
+use App\Http\Controllers\ReportController;
 
 
 Route::middleware('auth')->group(function () {
@@ -66,6 +67,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/customers/{customer}/payments/create', [PaymentController::class, 'create'])->name('customers.payments.create');
     Route::post('/customers/{customer}/payments', [PaymentController::class, 'store'])->name('customers.payments.store');
+
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::post('/reports/generate', [ReportController::class, 'generate'])->name('reports.generate');
+    Route::get('/reports/{report}/download', [ReportController::class, 'download'])->name('reports.download');
 });
 
 Route::middleware('auth')->group(function () {

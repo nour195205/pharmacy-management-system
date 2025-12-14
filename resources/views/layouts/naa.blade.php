@@ -65,6 +65,8 @@
                         <ul class="dropdown-menu" aria-labelledby="salesDropdown">
                             <li><a class="dropdown-item" href="{{ route('sales-invoices.index') }}">فواتير المبيعات</a></li>
                             <li><a class="dropdown-item" href="{{ route('sales-returns.index') }}">مرتجعات المبيعات</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ route('reports.index') }}">التقارير اليومية</a></li>
                         </ul>
                     </li>
 
