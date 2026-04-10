@@ -1,0 +1,33 @@
+@startuml
+package "Client Tier" {
+  [Web Browser] as Browser
+}
+
+package "Presentation Tier" {
+  [Views (Blade)] as Views
+  [Vite (Asset Bundling)] as Vite
+}
+
+package "Application Tier (Laravel)" {
+  [Controllers] as Controllers
+  [Models (Eloquent)] as Models
+  [Routes] as Routes
+  [Middleware (Auth/Roles)] as Middleware
+}
+
+package "Data Tier" {
+  database "MySQL / MariaDB" as DB
+}
+
+Browser --> Routes : HTTP Requests
+Browser <-- Views : HTML/CSS/JS
+
+Routes --> Middleware : Filter Requests
+Middleware --> Controllers : Pass to Controller
+Controllers --> Models : Read/Write Data
+Controllers --> Views : Render Response
+
+Models --> DB : SQL Queries
+Views <.. Vite : Compile Assets
+
+@enduml

@@ -1,0 +1,34 @@
+@startuml
+title Purchase Inventory Activity
+
+start
+:Pharmacist logs in;
+:Open 'Add Purchase Invoice';
+:Select Supplier;
+if (Supplier Exists?) then (yes)
+else (no)
+  :Register New Supplier;
+endif
+
+repeat
+  :Scan or Select Medicine;
+  if (Medicine Exists?) then (yes)
+  else (no)
+    :Register New Medicine;
+  endif
+  :Enter Batch Details (Expiry, Qty, Cost);
+  :Add Item to Invoice;
+repeat while (More items to add?) is (yes)
+
+:Calculate Total;
+:Enter Payment Details;
+if (Full Payment?) then (yes)
+  :Mark Invoice as Paid;
+else (Partial/No Payment)
+  :Mark Invoice as Pending;
+endif
+
+:Save Purchase Invoice;
+:Update Batch Stock in Database;
+stop
+@enduml

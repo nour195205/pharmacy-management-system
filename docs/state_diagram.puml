@@ -1,0 +1,20 @@
+@startuml
+title Sales Invoice State Processing
+
+[*] --> Draft : Create New Sale
+
+Draft --> Pending_Payment : Checkout Initiated
+Draft --> Cancelled : Cancel Sale
+
+Pending_Payment --> Paid : Full Payment Received
+Pending_Payment --> Partially_Paid : Partial Payment
+Partially_Paid --> Paid : Remaining Payment Received
+
+Paid --> Returned : Customer Returns Items
+Partially_Paid --> Returned : Customer Returns Items
+
+Returned --> [*]
+Paid --> [*]
+Cancelled --> [*]
+
+@enduml

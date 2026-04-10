@@ -94,9 +94,18 @@
 
 ---
 
+## 📄 التوثيق (Documentation)
+تم توثيق هندسة النظام ومسار العمليات باستخدام مجسمات PlantUML. يمكنك إيجاد جميع الـ Diagrams في مجلد `docs/`:
+- **Use Case Diagram**: `docs/usecase_diagram.puml`
+- **Class Diagram**: `docs/class_diagram.puml`
+- **Sequence Diagram**: `docs/sequence_diagram.puml`
+- **State Diagram**: `docs/state_diagram.puml`
+- **Activity Diagram**: `docs/activity_diagram.puml`
+- **Component Diagram**: `docs/component_diagram.puml`
+
+---
+
 ## 📝 ملاحظات
 > [!NOTE]
 > * تأكد من إعداد رابط التخزين لرفع الملفات: `php artisan storage:link`.
 > * كلمة مرور الإدارة الافتراضية بعد الـ Seed هي: `password`.
-
----

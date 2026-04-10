@@ -1,0 +1,29 @@
+@startuml
+actor Pharmacist
+participant "System UI" as UI
+participant "SalesController" as Controller
+participant "Medicine/Batch" as Inventory
+participant "SalesInvoice" as Invoice
+participant "CustomerAccount" as Account
+database "Database" as DB
+
+Pharmacist -> UI : Search Medicine
+UI -> Controller : GET /medicines
+Controller -> Inventory : Check Stock
+Inventory -> Controller : Return available batches
+Controller -> UI : Display Results
+Pharmacist -> UI : Add to Cart & Checkout (Select Customer)
+UI -> Controller : POST /sales (cart data, customer_id)
+Controller -> DB : DB Transaction Start
+Controller -> Invoice : Create SalesInvoice
+Invoice -> DB : Save
+Controller -> Inventory : Deduct Batch stock
+Inventory -> DB : Update Batch quantities
+alt If Sale is on Credit
+    Controller -> Account : Create AccountTransaction (Debit)
+    Account -> DB : Update Balance
+end
+Controller -> DB : DB Transaction Commit
+Controller -> UI : Return Success & Print Receipt
+UI -> Pharmacist : Show Receipt
+@enduml

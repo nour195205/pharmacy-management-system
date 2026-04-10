@@ -1,0 +1,105 @@
+@startuml
+skinparam handwritten false
+skinparam classAttributeIconSize 0
+
+class User {
+  +id: int
+  +name: string
+  +email: string
+  +role: string
+}
+
+class Branch {
+  +id: int
+  +name: string
+  +location: string
+}
+
+class Supplier {
+  +id: int
+  +name: string
+  +contact_info: string
+}
+
+class Customer {
+  +id: int
+  +name: string
+  +phone: string
+}
+
+class CustomerAccount {
+  +id: int
+  +balance: double
+}
+
+class AccountTransaction {
+  +id: int
+  +type: string
+  +amount: double
+}
+
+class Medicine {
+  +id: int
+  +name: string
+  +barcode: string
+  +category: string
+}
+
+class Batch {
+  +id: int
+  +batch_number: string
+  +production_date: date
+  +expiry_date: date
+  +quantity: int
+  +cost_price: double
+  +selling_price: double
+}
+
+class PurchaseInvoice {
+  +id: int
+  +date: date
+  +total_amount: double
+}
+
+class PurchaseInvoiceItem {
+  +id: int
+  +quantity: int
+  +price: double
+}
+
+class SalesInvoice {
+  +id: int
+  +date: date
+  +total_amount: double
+}
+
+class SalesInvoiceItem {
+  +id: int
+  +quantity: int
+  +price: double
+}
+
+class Payment {
+  +id: int
+  +amount: double
+  +payment_method: string
+}
+
+User "1" -- "*" Branch : manages >
+Branch "1" -- "*" Medicine : has >
+Medicine "1" -- "*" Batch : contains >
+Supplier "1" -- "*" PurchaseInvoice : provides >
+PurchaseInvoice "1" *-- "*" PurchaseInvoiceItem : contains >
+PurchaseInvoiceItem "*" -- "1" Batch : updates >
+
+Customer "1" -- "1" CustomerAccount : owns >
+CustomerAccount "1" *-- "*" AccountTransaction : contains >
+
+Customer "1" -- "*" SalesInvoice : makes >
+SalesInvoice "1" *-- "*" SalesInvoiceItem : contains >
+SalesInvoiceItem "*" -- "1" Batch : deducts from >
+
+SalesInvoice "1" -- "*" Payment : paid via >
+PurchaseInvoice "1" -- "*" Payment : paid via >
+
+@enduml
