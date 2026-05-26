@@ -43,10 +43,10 @@ class AppTheme {
         bodyLarge: TextStyle(color: lightText, fontSize: 14),
         bodyMedium: TextStyle(color: lightTextSecondary, fontSize: 12),
       ),
-      cardTheme: CardTheme(
+      cardTheme: const CardThemeData(
         color: lightCard,
         elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -57,10 +57,10 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
       ),
-      dialogTheme: DialogTheme(
+      dialogTheme: const DialogThemeData(
         backgroundColor: lightCard,
         surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -108,10 +108,10 @@ class AppTheme {
         bodyLarge: TextStyle(color: darkText, fontSize: 14),
         bodyMedium: TextStyle(color: darkTextSecondary, fontSize: 12),
       ),
-      cardTheme: CardTheme(
+      cardTheme: const CardThemeData(
         color: darkCard,
         elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -122,10 +122,10 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
       ),
-      dialogTheme: DialogTheme(
+      dialogTheme: const DialogThemeData(
         backgroundColor: darkCard,
         surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,

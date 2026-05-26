@@ -4,19 +4,19 @@ abstract class Failure {
 }
 
 class ServerFailure extends Failure {
-  const ServerFailure([String message = 'Server Error']) : super(message);
+  const ServerFailure([super.message = 'Server Error']);
 }
 
 class CacheFailure extends Failure {
-  const CacheFailure([String message = 'Local Database Error']) : super(message);
+  const CacheFailure([super.message = 'Local Database Error']);
 }
 
 class NetworkFailure extends Failure {
-  const NetworkFailure([String message = 'No Internet Connection']) : super(message);
+  const NetworkFailure([super.message = 'No Internet Connection']);
 }
 
 class ValidationFailure extends Failure {
-  const ValidationFailure(String message) : super(message);
+  const ValidationFailure(super.message);
 }
 
 class DatabaseException implements Exception {
