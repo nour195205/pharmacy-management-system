@@ -70,6 +70,8 @@ import 'package:desktop/features/sales/domain/usecases/create_sales_invoice.dart
 import 'package:desktop/features/sales/domain/usecases/create_sales_return.dart';
 import 'package:desktop/features/sales/domain/usecases/get_sales_invoices.dart';
 import 'package:desktop/features/sales/domain/usecases/get_sales_returns.dart';
+import 'package:desktop/features/sales/domain/usecases/update_sales_invoice.dart';
+import 'package:desktop/features/sales/domain/usecases/delete_sales_invoice.dart';
 import 'package:desktop/features/sales/presentation/bloc/sales_invoices_bloc.dart';
 import 'package:desktop/features/sales/presentation/bloc/sales_returns_bloc.dart';
 
@@ -165,6 +167,8 @@ Future<void> init() async {
     () => SalesInvoicesBloc(
       getSalesInvoicesUseCase: sl(),
       createSalesInvoiceUseCase: sl(),
+      updateSalesInvoiceUseCase: sl(),
+      deleteSalesInvoiceUseCase: sl(),
     ),
   );
   sl.registerFactory(
@@ -177,6 +181,8 @@ Future<void> init() async {
   // Use cases
   sl.registerLazySingleton(() => GetSalesInvoices(sl()));
   sl.registerLazySingleton(() => CreateSalesInvoice(sl()));
+  sl.registerLazySingleton(() => UpdateSalesInvoice(sl()));
+  sl.registerLazySingleton(() => DeleteSalesInvoice(sl()));
   sl.registerLazySingleton(() => GetSalesReturns(sl()));
   sl.registerLazySingleton(() => CreateSalesReturn(sl()));
 
@@ -335,4 +341,9 @@ Future<void> init() async {
   //! External
   sl.registerLazySingleton(() => Connectivity());
   sl.registerLazySingleton(() => Dio());
+
+  // Pre-initialize services and load custom API Base URL from local SQLite settings
+  final dbService = sl<DatabaseService>();
+  final apiService = sl<ApiService>();
+  await apiService.loadCustomBaseUrl(dbService);
 }

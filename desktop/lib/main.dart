@@ -16,6 +16,7 @@ import 'package:desktop/features/sales/presentation/bloc/sales_returns_bloc.dart
 import 'package:desktop/shared/pages/reports_page.dart';
 import 'package:desktop/shared/pages/sales_page.dart';
 import 'package:desktop/shared/pages/core_data_page.dart';
+import 'package:desktop/shared/pages/settings_page.dart';
 import 'package:desktop/shared/widgets/shell_layout.dart';
 import 'package:desktop/injection_container.dart' as di;
 
@@ -76,6 +77,7 @@ class PharmacyManagementSystemApp extends StatelessWidget {
           customersPage: const CoreDataPage(),
           salesPage: const SalesPage(),
           reportsPage: const ReportsPage(),
+          settingsPage: const SettingsPage(),
         ),
       ),
     );

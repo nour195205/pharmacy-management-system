@@ -9,7 +9,8 @@ import 'package:desktop/services/database_service.dart';
 import 'package:desktop/injection_container.dart' as di;
 
 class CreateSalesInvoicePage extends StatefulWidget {
-  const CreateSalesInvoicePage({super.key});
+  final SalesInvoice? invoiceToEdit;
+  const CreateSalesInvoicePage({super.key, this.invoiceToEdit});
 
   @override
   State<CreateSalesInvoicePage> createState() => _CreateSalesInvoicePageState();
@@ -34,6 +35,13 @@ class _CreateSalesInvoicePageState extends State<CreateSalesInvoicePage> {
   @override
   void initState() {
     super.initState();
+    if (widget.invoiceToEdit != null) {
+      _selectedCustomerId = widget.invoiceToEdit!.customerId;
+      _invoiceDate = DateTime.parse(widget.invoiceToEdit!.date);
+      _paymentMethod = widget.invoiceToEdit!.paymentMethod;
+      _status = widget.invoiceToEdit!.status;
+      _noteController.text = widget.invoiceToEdit!.note ?? '';
+    }
     _loadFormData();
   }
 
@@ -49,22 +57,73 @@ class _CreateSalesInvoicePageState extends State<CreateSalesInvoicePage> {
 
     final customers = await db.query('customers');
 
-    // Query batches with quantity > 0 and join with medicines to get names and details
-    final List<Map<String, dynamic>> batches = await db.rawQuery('''
-      SELECT 
-        b.*,
-        m.name as medicine_name,
-        m.price as medicine_price,
-        m.unit as medicine_unit
-      FROM batches b
-      JOIN medicines m ON b.medicine_id = m.id
-      WHERE b.quantity > 0
-      ORDER BY b.expiry_date ASC
-    ''');
+    // Query batches: if editing, include batches that are in the current invoice even if quantity is 0
+    final List<Map<String, dynamic>> batches;
+    if (widget.invoiceToEdit != null && widget.invoiceToEdit!.items.isNotEmpty) {
+      final batchIds = widget.invoiceToEdit!.items.map((i) => "'${i.batchId}'").join(",");
+      batches = await db.rawQuery('''
+        SELECT 
+          b.*,
+          m.name as medicine_name,
+          m.price as medicine_price,
+          m.unit as medicine_unit
+        FROM batches b
+        JOIN medicines m ON b.medicine_id = m.id
+        WHERE b.quantity > 0 OR b.id IN ($batchIds)
+        ORDER BY b.expiry_date ASC
+      ''');
+    } else {
+      batches = await db.rawQuery('''
+        SELECT 
+          b.*,
+          m.name as medicine_name,
+          m.price as medicine_price,
+          m.unit as medicine_unit
+        FROM batches b
+        JOIN medicines m ON b.medicine_id = m.id
+        WHERE b.quantity > 0
+        ORDER BY b.expiry_date ASC
+      ''');
+    }
 
     setState(() {
       _customers = customers;
       _availableBatches = batches;
+
+      if (widget.invoiceToEdit != null) {
+        _salesItems.clear();
+        for (var item in widget.invoiceToEdit!.items) {
+          final batchMapIndex = batches.indexWhere((b) => b['id'].toString() == item.batchId);
+          if (batchMapIndex >= 0) {
+            final batchMap = batches[batchMapIndex];
+            final double currentDbQty = (batchMap['quantity'] as num).toDouble();
+            final double maxQty = currentDbQty + item.quantity;
+
+            _salesItems.add(_SalesItemData(
+              batchId: item.batchId,
+              batchNumber: item.batchNumber ?? '',
+              medicineId: batchMap['medicine_id'].toString(),
+              medicineName: item.medicineName ?? '',
+              expiryDate: batchMap['expiry_date'].toString(),
+              quantity: item.quantity,
+              price: item.price,
+              maxQuantity: maxQty,
+            ));
+          } else {
+            _salesItems.add(_SalesItemData(
+              batchId: item.batchId,
+              batchNumber: item.batchNumber ?? '',
+              medicineId: '',
+              medicineName: item.medicineName ?? '',
+              expiryDate: '',
+              quantity: item.quantity,
+              price: item.price,
+              maxQuantity: item.quantity.toDouble(),
+            ));
+          }
+        }
+      }
+
       _isLoading = false;
     });
   }
@@ -74,7 +133,14 @@ class _CreateSalesInvoicePageState extends State<CreateSalesInvoicePage> {
       final batchId = batch['id'].toString();
       final existingIndex = _salesItems.indexWhere((item) => item.batchId == batchId);
 
-      final double maxQty = (batch['quantity'] as num).toDouble();
+      final double maxQty;
+      final originalItemIndex = widget.invoiceToEdit?.items.indexWhere((i) => i.batchId == batchId) ?? -1;
+      if (widget.invoiceToEdit != null && originalItemIndex >= 0) {
+        maxQty = (batch['quantity'] as num).toDouble() + widget.invoiceToEdit!.items[originalItemIndex].quantity;
+      } else {
+        maxQty = (batch['quantity'] as num).toDouble();
+      }
+
       final int price = (batch['selling_price'] as num).toInt();
 
       if (existingIndex >= 0) {
@@ -125,7 +191,7 @@ class _CreateSalesInvoicePageState extends State<CreateSalesInvoicePage> {
     }
 
     final invoice = SalesInvoice(
-      id: '',
+      id: widget.invoiceToEdit?.id ?? '',
       branchId: int.parse(_selectedBranchId),
       customerId: _selectedCustomerId,
       customerName: customerName,
@@ -134,10 +200,12 @@ class _CreateSalesInvoicePageState extends State<CreateSalesInvoicePage> {
       status: _status,
       paymentMethod: _paymentMethod,
       note: _noteController.text.isEmpty ? null : _noteController.text,
-      createdBy: 1,
+      createdBy: widget.invoiceToEdit?.createdBy ?? 1,
+      isSynced: widget.invoiceToEdit?.isSynced ?? false,
+      createdAt: widget.invoiceToEdit?.createdAt,
       items: _salesItems.map((item) => SalesInvoiceItem(
         id: '',
-        salesInvoiceId: '',
+        salesInvoiceId: widget.invoiceToEdit?.id ?? '',
         batchId: item.batchId,
         batchNumber: item.batchNumber,
         medicineName: item.medicineName,
@@ -146,7 +214,11 @@ class _CreateSalesInvoicePageState extends State<CreateSalesInvoicePage> {
       )).toList(),
     );
 
-    context.read<SalesInvoicesBloc>().add(AddSalesInvoiceEvent(invoice));
+    if (widget.invoiceToEdit != null) {
+      context.read<SalesInvoicesBloc>().add(UpdateSalesInvoiceEvent(invoice));
+    } else {
+      context.read<SalesInvoicesBloc>().add(AddSalesInvoiceEvent(invoice));
+    }
     Navigator.pop(context);
   }
 
@@ -161,7 +233,7 @@ class _CreateSalesInvoicePageState extends State<CreateSalesInvoicePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('شاشة نقطة البيع الفورية (POS Cashier)'),
+        title: Text(widget.invoiceToEdit != null ? 'تعديل فاتورة مبيعات' : 'شاشة نقطة البيع الفورية (POS Cashier)'),
       ),
       body: Form(
         key: _formKey,
@@ -231,6 +303,35 @@ class _CreateSalesInvoicePageState extends State<CreateSalesInvoicePage> {
                           const DropdownMenuItem(value: 'معلق', child: Text('معلق (شُكك / ذمم)')),
                       ],
                       onChanged: (val) => setState(() => _status = val ?? 'مدفوع'),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () async {
+                        final date = await showDatePicker(
+                          context: context,
+                          initialDate: _invoiceDate,
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2100),
+                        );
+                        if (date != null) {
+                          setState(() {
+                            _invoiceDate = date;
+                          });
+                        }
+                      },
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'تاريخ الفاتورة',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(LucideIcons.calendar),
+                        ),
+                        child: Text(
+                          '${_invoiceDate.year}-${_invoiceDate.month.toString().padLeft(2, '0')}-${_invoiceDate.day.toString().padLeft(2, '0')}',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
                     ),
                   ),
                 ],

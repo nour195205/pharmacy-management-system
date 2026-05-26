@@ -5,4 +5,6 @@ import 'package:desktop/features/sales/domain/entities/sales_invoice.dart';
 abstract class SalesInvoicesRepository {
   Future<Either<Failure, List<SalesInvoice>>> getSalesInvoices();
   Future<Either<Failure, SalesInvoice>> createSalesInvoice(SalesInvoice invoice);
+  Future<Either<Failure, SalesInvoice>> updateSalesInvoice(SalesInvoice invoice);
+  Future<Either<Failure, void>> deleteSalesInvoice(String id);
 }

@@ -393,6 +393,100 @@ class SyncService {
         debugPrint('Sync down sales returns error: $e');
       }
 
+      // 6. Sync Purchase Invoices (Sync down all invoices and their items)
+      try {
+        final Response response = await _apiService.get('/purchase-invoices');
+        final responseData = response.data;
+        if (responseData != null && responseData['data'] != null) {
+          final List invoices = responseData['data'];
+          for (var item in invoices) {
+            final invoiceMap = item as Map<String, dynamic>;
+            final id = invoiceMap['id'].toString();
+            
+            final branchId = (invoiceMap['branch']?['id'] as num?)?.toInt() ?? 1;
+            final supplierId = invoiceMap['supplier']?['id']?.toString() ?? '';
+            final userId = (invoiceMap['user']?['id'] as num?)?.toInt() ?? 1;
+
+            await db.insert('purchase_invoices', {
+              'id': id,
+              'branch_id': branchId,
+              'supplier_id': supplierId,
+              'user_id': userId,
+              'invoice_date': invoiceMap['invoice_date']?.toString() ?? '',
+              'total_amount': (invoiceMap['total_amount'] as num?)?.toDouble() ?? 0.0,
+              'is_synced': 1,
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+            // Sync items
+            if (invoiceMap['items'] != null) {
+              final List items = invoiceMap['items'];
+              for (var it in items) {
+                final itemMap = it as Map<String, dynamic>;
+                final itemId = itemMap['id'].toString();
+                final batchId = itemMap['batch']?['id']?.toString() ?? '';
+                
+                await db.insert('purchase_invoice_items', {
+                  'id': itemId,
+                  'purchase_invoice_id': id,
+                  'batch_id': batchId,
+                  'qty': (itemMap['qty'] as num?)?.toInt() ?? 0,
+                  'price': (itemMap['price'] as num?)?.toDouble() ?? 0.0,
+                }, conflictAlgorithm: ConflictAlgorithm.replace);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('Sync down purchase invoices error: $e');
+      }
+
+      // 7. Sync Purchase Returns (Sync down all returns and their items)
+      try {
+        final Response response = await _apiService.get('/purchase-returns');
+        final responseData = response.data;
+        if (responseData != null && responseData['data'] != null) {
+          final List returns = responseData['data'];
+          for (var item in returns) {
+            final returnMap = item as Map<String, dynamic>;
+            final id = returnMap['id'].toString();
+            final purchaseInvoiceId = returnMap['purchase_invoice']?['id']?.toString() ?? '';
+            final userId = (returnMap['user']?['id'] as num?)?.toInt() ?? 1;
+
+            await db.insert('purchase_returns', {
+              'id': id,
+              'purchase_invoice_id': purchaseInvoiceId,
+              'user_id': userId,
+              'date': returnMap['date']?.toString() ?? '',
+              'total': (returnMap['total'] as num?)?.toDouble() ?? 0.0,
+              'reason': returnMap['reason']?.toString(),
+              'created_by': (returnMap['created_by'] as num?)?.toInt() ?? 1,
+              'is_synced': 1,
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+            // Sync items
+            if (returnMap['items'] != null) {
+              final List items = returnMap['items'];
+              for (var it in items) {
+                final itemMap = it as Map<String, dynamic>;
+                final itemId = itemMap['id'].toString();
+                final batchId = itemMap['batch']?['id']?.toString() ?? '';
+
+                await db.insert('purchase_return_items', {
+                  'id': itemId,
+                  'purchase_return_id': id,
+                  'batch_id': batchId,
+                  'quantity': (itemMap['quantity'] as num?)?.toInt() ?? 0,
+                  'purchase_price': (itemMap['purchase_price'] as num?)?.toDouble() ?? 0.0,
+                  'total': (itemMap['total'] as num?)?.toDouble() ?? 0.0,
+                }, conflictAlgorithm: ConflictAlgorithm.replace);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('Sync down purchase returns error: $e');
+      }
+
       // Notify UI
       _syncStatusController.add(SyncStatus.synced);
     } catch (e) {

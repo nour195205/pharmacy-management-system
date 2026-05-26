@@ -70,4 +70,65 @@ class SalesInvoicesRepositoryImpl implements SalesInvoicesRepository {
       return Left(CacheFailure('فشل في إنشاء فاتورة مبيعات: $e'));
     }
   }
+
+  @override
+  Future<Either<Failure, SalesInvoice>> updateSalesInvoice(SalesInvoice invoice) async {
+    try {
+      final invoiceModel = SalesInvoiceModel(
+        id: invoice.id,
+        branchId: invoice.branchId,
+        customerId: invoice.customerId,
+        customerName: invoice.customerName,
+        date: invoice.date,
+        total: invoice.total,
+        status: invoice.status,
+        paymentMethod: invoice.paymentMethod,
+        note: invoice.note,
+        createdBy: invoice.createdBy,
+        items: invoice.items,
+        isSynced: invoice.isSynced,
+        createdAt: invoice.createdAt,
+      );
+
+      final updatedInvoice = await localDataSource.updateSalesInvoice(invoiceModel);
+
+      // Queue sync
+      await databaseService.queueOperation(
+        tableName: 'sales_invoices',
+        operationType: 'UPDATE',
+        recordId: updatedInvoice.id,
+        payload: updatedInvoice.toJson(),
+      );
+
+      if (await connectivityInfo.isConnected) {
+        syncService.syncQueue();
+      }
+
+      return Right(updatedInvoice);
+    } catch (e) {
+      return Left(CacheFailure('فشل في تعديل فاتورة مبيعات: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteSalesInvoice(String id) async {
+    try {
+      await localDataSource.deleteSalesInvoice(id);
+
+      // Queue sync
+      await databaseService.queueOperation(
+        tableName: 'sales_invoices',
+        operationType: 'DELETE',
+        recordId: id,
+      );
+
+      if (await connectivityInfo.isConnected) {
+        syncService.syncQueue();
+      }
+
+      return const Right(null);
+    } catch (e) {
+      return Left(CacheFailure('فشل في حذف فاتورة مبيعات: $e'));
+    }
+  }
 }

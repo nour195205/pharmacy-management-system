@@ -1,6 +1,23 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:desktop/services/sync_service.dart';
 import 'package:desktop/shared/widgets/sidebar.dart';
+
+import 'package:desktop/features/medicines/presentation/bloc/medicines_bloc.dart';
+import 'package:desktop/features/medicines/presentation/bloc/medicines_event.dart';
+import 'package:desktop/features/inventory/presentation/bloc/batches_bloc.dart';
+import 'package:desktop/features/inventory/presentation/bloc/batches_event.dart';
+import 'package:desktop/features/customers/presentation/bloc/customers_bloc.dart';
+import 'package:desktop/features/customers/presentation/bloc/customers_event.dart';
+import 'package:desktop/features/purchases/presentation/bloc/purchase_invoices_bloc.dart';
+import 'package:desktop/features/purchases/presentation/bloc/purchase_invoices_event.dart';
+import 'package:desktop/features/purchases/presentation/bloc/purchase_returns_bloc.dart';
+import 'package:desktop/features/purchases/presentation/bloc/purchase_returns_event.dart';
+import 'package:desktop/features/sales/presentation/bloc/sales_invoices_bloc.dart';
+import 'package:desktop/features/sales/presentation/bloc/sales_invoices_event.dart';
+import 'package:desktop/features/sales/presentation/bloc/sales_returns_bloc.dart';
+import 'package:desktop/features/sales/presentation/bloc/sales_returns_event.dart';
 
 class ShellLayout extends StatefulWidget {
   final SyncService syncService;
@@ -11,6 +28,7 @@ class ShellLayout extends StatefulWidget {
   final Widget customersPage;
   final Widget salesPage;
   final Widget reportsPage;
+  final Widget settingsPage;
 
   const ShellLayout({
     super.key,
@@ -22,6 +40,7 @@ class ShellLayout extends StatefulWidget {
     required this.customersPage,
     required this.salesPage,
     required this.reportsPage,
+    required this.settingsPage,
   });
 
   @override
@@ -30,6 +49,7 @@ class ShellLayout extends StatefulWidget {
 
 class _ShellLayoutState extends State<ShellLayout> {
   int _currentIndex = 0;
+  StreamSubscription<SyncStatus>? _syncSubscription;
 
   @override
   void initState() {
@@ -39,6 +59,27 @@ class _ShellLayoutState extends State<ShellLayout> {
       widget.syncService.syncQueue();
       widget.syncService.syncFromServer();
     });
+
+    // Auto-reload all BLoCs when database sync completes
+    _syncSubscription = widget.syncService.syncStatusStream.listen((status) {
+      if (status == SyncStatus.synced) {
+        if (mounted) {
+          context.read<MedicinesBloc>().add(const LoadMedicinesEvent());
+          context.read<BatchesBloc>().add(const LoadBatchesEvent());
+          context.read<CustomersBloc>().add(const LoadCustomersEvent());
+          context.read<PurchaseInvoicesBloc>().add(const LoadPurchaseInvoicesEvent());
+          context.read<PurchaseReturnsBloc>().add(const LoadPurchaseReturnsEvent());
+          context.read<SalesInvoicesBloc>().add(const LoadSalesInvoicesEvent());
+          context.read<SalesReturnsBloc>().add(const LoadSalesReturnsEvent());
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _syncSubscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -79,6 +120,7 @@ class _ShellLayoutState extends State<ShellLayout> {
                         widget.customersPage,
                         widget.salesPage,
                         widget.reportsPage,
+                        widget.settingsPage,
                       ],
                     ),
                   ),

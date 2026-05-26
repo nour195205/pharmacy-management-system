@@ -47,6 +47,14 @@ class DatabaseService {
       )
     ''');
 
+    // Defensive columns check for older version 1 databases
+    try {
+      await db.execute('ALTER TABLE sales_invoices ADD COLUMN created_at TEXT');
+    } catch (_) {}
+    try {
+      await db.execute('ALTER TABLE sales_invoices ADD COLUMN updated_at TEXT');
+    } catch (_) {}
+
     await db.execute('''
       CREATE TABLE IF NOT EXISTS sales_return_items (
         id TEXT PRIMARY KEY,
@@ -68,6 +76,13 @@ class DatabaseService {
         is_synced INTEGER DEFAULT 0,
         created_at TEXT,
         updated_at TEXT
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
       )
     ''');
 
@@ -291,6 +306,14 @@ class DatabaseService {
         created_at TEXT NOT NULL
       )
     ''');
+
+    // 8. Settings Table
+    await db.execute('''
+      CREATE TABLE settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      )
+    ''');
   }
 
   Future<void> queueOperation({
@@ -309,9 +332,35 @@ class DatabaseService {
     });
   }
 
+  Future<String?> getSetting(String key) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'settings',
+      where: 'key = ?',
+      whereArgs: [key],
+    );
+    if (maps.isNotEmpty) {
+      return maps.first['value'] as String;
+    }
+    return null;
+  }
+
+  Future<void> setSetting(String key, String value) async {
+    final db = await database;
+    await db.insert(
+      'settings',
+      {
+        'key': key,
+        'value': value,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
   Future<void> clearDatabase() async {
     final db = await database;
     final batch = db.batch();
+    batch.delete('settings');
     batch.delete('sales_return_items');
     batch.delete('sales_returns');
     batch.delete('sales_invoice_items');

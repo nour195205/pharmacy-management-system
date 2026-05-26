@@ -2,9 +2,22 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:desktop/core/errors/failures.dart';
 import 'package:desktop/core/utils/constants.dart';
+import 'package:desktop/services/database_service.dart';
 
 class ApiService {
   final Dio _dio;
+
+  String get baseUrl => _dio.options.baseUrl;
+  set baseUrl(String url) {
+    _dio.options.baseUrl = url;
+  }
+
+  Future<void> loadCustomBaseUrl(DatabaseService dbService) async {
+    final customUrl = await dbService.getSetting('api_base_url');
+    if (customUrl != null && customUrl.isNotEmpty) {
+      _dio.options.baseUrl = customUrl;
+    }
+  }
 
   ApiService(this._dio) {
     _dio.options = BaseOptions(

@@ -128,6 +128,12 @@ class AppSidebar extends StatelessWidget {
                   selected: selectedIndex == 6,
                   onTap: () => onDestinationSelected(6),
                 ),
+                _SidebarItem(
+                  icon: LucideIcons.settings,
+                  label: 'إعدادات النظام',
+                  selected: selectedIndex == 7,
+                  onTap: () => onDestinationSelected(7),
+                ),
               ],
             ),
           ),
