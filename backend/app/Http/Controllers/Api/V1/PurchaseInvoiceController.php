@@ -9,6 +9,7 @@ use App\Http\Resources\PurchaseInvoiceResource;
 use App\Models\PurchaseInvoice;
 use App\Services\PurchaseInvoiceService;
 use App\Traits\ApiResponse;
+use Illuminate\Support\Facades\Auth;
 
 class PurchaseInvoiceController extends Controller
 {
@@ -25,7 +26,7 @@ class PurchaseInvoiceController extends Controller
     public function store(StorePurchaseInvoiceRequest $request)
     {
         try {
-            $invoice = $this->purchaseInvoiceService->store($request->validated(), auth()->id());
+            $invoice = $this->purchaseInvoiceService->store($request->validated(), Auth::id() ?? 1);
             $invoice->load('items.batch.medicine', 'branch', 'supplier');
             return $this->created(
                 new PurchaseInvoiceResource($invoice),

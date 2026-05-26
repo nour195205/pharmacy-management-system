@@ -8,12 +8,14 @@ import 'package:desktop/features/inventory/presentation/pages/batches_page.dart'
 import 'package:desktop/features/medicines/presentation/bloc/medicines_bloc.dart';
 import 'package:desktop/features/medicines/presentation/pages/medicines_page.dart';
 import 'package:desktop/features/customers/presentation/bloc/customers_bloc.dart';
-import 'package:desktop/features/customers/presentation/pages/customers_page.dart';
 import 'package:desktop/features/purchases/presentation/bloc/purchase_invoices_bloc.dart';
 import 'package:desktop/features/purchases/presentation/bloc/purchase_returns_bloc.dart';
 import 'package:desktop/features/purchases/presentation/pages/purchases_page.dart';
+import 'package:desktop/features/sales/presentation/bloc/sales_invoices_bloc.dart';
+import 'package:desktop/features/sales/presentation/bloc/sales_returns_bloc.dart';
 import 'package:desktop/shared/pages/reports_page.dart';
 import 'package:desktop/shared/pages/sales_page.dart';
+import 'package:desktop/shared/pages/core_data_page.dart';
 import 'package:desktop/shared/widgets/shell_layout.dart';
 import 'package:desktop/injection_container.dart' as di;
 
@@ -52,6 +54,12 @@ class PharmacyManagementSystemApp extends StatelessWidget {
         BlocProvider<PurchaseReturnsBloc>(
           create: (context) => di.sl<PurchaseReturnsBloc>(),
         ),
+        BlocProvider<SalesInvoicesBloc>(
+          create: (context) => di.sl<SalesInvoicesBloc>(),
+        ),
+        BlocProvider<SalesReturnsBloc>(
+          create: (context) => di.sl<SalesReturnsBloc>(),
+        ),
       ],
       child: MaterialApp(
         title: 'صيدليتي - نظام إدارة الصيدلية',
@@ -65,7 +73,7 @@ class PharmacyManagementSystemApp extends StatelessWidget {
           medicinesPage: const MedicinesPage(),
           inventoryPage: const BatchesPage(),
           purchasesPage: const PurchasesPage(),
-          customersPage: const CustomersPage(),
+          customersPage: const CoreDataPage(),
           salesPage: const SalesPage(),
           reportsPage: const ReportsPage(),
         ),

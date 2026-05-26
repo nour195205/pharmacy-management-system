@@ -171,6 +171,56 @@ class SyncService {
         debugPrint('Sync down customers error: $e');
       }
 
+      // Sync Suppliers
+      try {
+        final Response response = await _apiService.get('/suppliers');
+        final responseData = response.data;
+        if (responseData != null && responseData['data'] != null) {
+          final List suppliers = responseData['data'];
+          for (var item in suppliers) {
+            final supplierMap = item as Map<String, dynamic>;
+            final id = supplierMap['id'].toString();
+            
+            await db.insert('suppliers', {
+              'id': id,
+              'name': supplierMap['name'],
+              'contact_info': supplierMap['contact_info'] ?? '',
+              'address': supplierMap['address'] ?? '',
+              'phone': supplierMap['phone'] ?? '',
+              'email': supplierMap['email'] ?? '',
+              'balance': supplierMap['balance'] != null 
+                  ? double.tryParse(supplierMap['balance'].toString()) ?? 0.0
+                  : 0.0,
+              'is_synced': 1,
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
+          }
+        }
+      } catch (e) {
+        debugPrint('Sync down suppliers error: $e');
+      }
+
+      // Sync Branches
+      try {
+        final Response response = await _apiService.get('/branches');
+        final responseData = response.data;
+        if (responseData != null && responseData['data'] != null) {
+          final List branches = responseData['data'];
+          for (var item in branches) {
+            final branchMap = item as Map<String, dynamic>;
+            final id = (branchMap['id'] as num).toInt();
+            
+            await db.insert('branches', {
+              'id': id,
+              'name': branchMap['name'],
+              'location': branchMap['location'] ?? '',
+              'is_synced': 1,
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
+          }
+        }
+      } catch (e) {
+        debugPrint('Sync down branches error: $e');
+      }
+
       // 2. Sync Medicines
       try {
         final Response response = await _apiService.get('/medicines');
@@ -247,6 +297,102 @@ class SyncService {
         debugPrint('Sync down batches error: $e');
       }
 
+      // 4. Sync Sales Invoices (Sync down all invoices and their items)
+      try {
+        final Response response = await _apiService.get('/sales-invoices');
+        final responseData = response.data;
+        if (responseData != null && responseData['data'] != null) {
+          final List invoices = responseData['data'];
+          for (var item in invoices) {
+            final invoiceMap = item as Map<String, dynamic>;
+            final id = invoiceMap['id'].toString();
+            
+            final branchId = (invoiceMap['branch']?['id'] as num?)?.toInt() ?? 1;
+            final customerId = invoiceMap['customer']?['id']?.toString();
+            final createdBy = (invoiceMap['creator']?['id'] as num?)?.toInt() ?? 1;
+
+            await db.insert('sales_invoices', {
+              'id': id,
+              'branch_id': branchId,
+              'customer_id': customerId,
+              'date': invoiceMap['date']?.toString() ?? '',
+              'total': (invoiceMap['total'] as num?)?.toDouble() ?? 0.0,
+              'status': invoiceMap['status']?.toString() ?? 'مدفوع',
+              'payment_method': invoiceMap['payment_method']?.toString() ?? 'نقدا',
+              'note': invoiceMap['note']?.toString(),
+              'created_by': createdBy,
+              'is_synced': 1,
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+            // Sync items
+            if (invoiceMap['items'] != null) {
+              final List items = invoiceMap['items'];
+              for (var it in items) {
+                final itemMap = it as Map<String, dynamic>;
+                final itemId = itemMap['id'].toString();
+                final batchId = itemMap['batch']?['id']?.toString() ?? '';
+                
+                await db.insert('sales_invoice_items', {
+                  'id': itemId,
+                  'sales_invoice_id': id,
+                  'batch_id': batchId,
+                  'qty': (itemMap['quantity'] as num?)?.toInt() ?? 0,
+                  'price': (itemMap['price'] as num?)?.toInt() ?? 0,
+                }, conflictAlgorithm: ConflictAlgorithm.replace);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('Sync down sales invoices error: $e');
+      }
+
+      // 5. Sync Sales Returns (Sync down all returns and their items)
+      try {
+        final Response response = await _apiService.get('/sales-returns');
+        final responseData = response.data;
+        if (responseData != null && responseData['data'] != null) {
+          final List returns = responseData['data'];
+          for (var item in returns) {
+            final returnMap = item as Map<String, dynamic>;
+            final id = returnMap['id'].toString();
+            final salesInvoiceId = returnMap['sales_invoice']?['id']?.toString() ?? '';
+            final createdBy = (returnMap['user']?['id'] as num?)?.toInt() ?? 1;
+
+            await db.insert('sales_returns', {
+              'id': id,
+              'sales_invoice_id': salesInvoiceId,
+              'date': returnMap['date']?.toString() ?? '',
+              'total': (returnMap['total'] as num?)?.toDouble() ?? 0.0,
+              'reason': returnMap['reason']?.toString(),
+              'created_by': createdBy,
+              'is_synced': 1,
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+            // Sync items
+            if (returnMap['items'] != null) {
+              final List items = returnMap['items'];
+              for (var it in items) {
+                final itemMap = it as Map<String, dynamic>;
+                final itemId = itemMap['id'].toString();
+                final batchId = itemMap['batch']?['id']?.toString() ?? '';
+
+                await db.insert('sales_return_items', {
+                  'id': itemId,
+                  'sales_return_id': id,
+                  'batch_id': batchId,
+                  'quantity': (itemMap['quantity'] as num?)?.toInt() ?? 0,
+                  'selling_price': (itemMap['selling_price'] as num?)?.toDouble() ?? 0.0,
+                  'total': (itemMap['total'] as num?)?.toDouble() ?? 0.0,
+                }, conflictAlgorithm: ConflictAlgorithm.replace);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('Sync down sales returns error: $e');
+      }
+
       // Notify UI
       _syncStatusController.add(SyncStatus.synced);
     } catch (e) {
@@ -292,6 +438,16 @@ class SyncService {
           'UPDATE sales_invoice_items SET sales_invoice_id = ? WHERE sales_invoice_id = ?',
           [serverId, localId],
         );
+        await txn.rawUpdate(
+          'UPDATE sales_returns SET sales_invoice_id = ? WHERE sales_invoice_id = ?',
+          [serverId, localId],
+        );
+      }
+      else if (tableName == 'sales_returns') {
+        await txn.rawUpdate(
+          'UPDATE sales_return_items SET sales_return_id = ? WHERE sales_return_id = ?',
+          [serverId, localId],
+        );
       }
       else if (tableName == 'purchase_invoices') {
         await txn.rawUpdate(
@@ -311,7 +467,6 @@ class SyncService {
       }
 
       // 3. Update any subsequent items in the pending operations queue that reference the old localId
-      // This handles cases where an update/delete of this record is already queued
       await txn.rawUpdate(
         "UPDATE pending_operations SET record_id = ? WHERE table_name = ? AND record_id = ?",
         [serverId, tableName, localId],
@@ -329,6 +484,8 @@ class SyncService {
         return '/suppliers';
       case 'sales_invoices':
         return '/sales-invoices';
+      case 'sales_returns':
+        return '/sales-returns';
       case 'purchase_invoices':
         return '/purchase-invoices';
       case 'purchase_returns':

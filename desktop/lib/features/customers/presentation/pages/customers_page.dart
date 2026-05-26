@@ -8,7 +8,8 @@ import 'package:desktop/features/customers/presentation/bloc/customers_event.dar
 import 'package:desktop/features/customers/presentation/bloc/customers_state.dart';
 
 class CustomersPage extends StatefulWidget {
-  const CustomersPage({super.key});
+  final bool hideAppBar;
+  const CustomersPage({super.key, this.hideAppBar = false});
 
   @override
   State<CustomersPage> createState() => _CustomersPageState();
@@ -41,19 +42,21 @@ class _CustomersPageState extends State<CustomersPage> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('إدارة العملاء والحسابات الائتمانية'),
-        actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.refreshCw),
-            tooltip: 'تحديث البيانات',
-            onPressed: () {
-              context.read<CustomersBloc>().add(const LoadCustomersEvent());
-            },
-          ),
-          const SizedBox(width: 16),
-        ],
-      ),
+      appBar: widget.hideAppBar
+          ? null
+          : AppBar(
+              title: const Text('إدارة العملاء والحسابات الائتمانية'),
+              actions: [
+                IconButton(
+                  icon: const Icon(LucideIcons.refreshCw),
+                  tooltip: 'تحديث البيانات',
+                  onPressed: () {
+                    context.read<CustomersBloc>().add(const LoadCustomersEvent());
+                  },
+                ),
+                const SizedBox(width: 16),
+              ],
+            ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(

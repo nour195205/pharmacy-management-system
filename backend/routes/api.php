@@ -42,6 +42,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::apiResource('purchase-invoices', PurchaseInvoiceController::class);
         Route::apiResource('purchase-returns', \App\Http\Controllers\Api\V1\PurchaseReturnController::class)->only(['index', 'store', 'show']);
         Route::apiResource('sales-invoices', SalesInvoiceController::class);
+        Route::apiResource('sales-returns', \App\Http\Controllers\Api\V1\SalesReturnController::class)->only(['index', 'store', 'show']);
+        Route::post('/reports/custom', [\App\Http\Controllers\Api\V1\ReportController::class, 'customReport']);
 
     // });
 });

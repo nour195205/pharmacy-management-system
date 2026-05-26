@@ -58,6 +58,21 @@ import 'package:desktop/features/purchases/domain/usecases/create_purchase_retur
 import 'package:desktop/features/purchases/domain/usecases/get_purchase_returns.dart';
 import 'package:desktop/features/purchases/presentation/bloc/purchase_returns_bloc.dart';
 
+import 'package:desktop/features/sales/data/datasources/sales_invoices_local_data_source.dart';
+import 'package:desktop/features/sales/data/datasources/sales_invoices_remote_data_source.dart';
+import 'package:desktop/features/sales/data/datasources/sales_returns_local_data_source.dart';
+import 'package:desktop/features/sales/data/datasources/sales_returns_remote_data_source.dart';
+import 'package:desktop/features/sales/data/repositories/sales_invoices_repository_impl.dart';
+import 'package:desktop/features/sales/data/repositories/sales_returns_repository_impl.dart';
+import 'package:desktop/features/sales/domain/repositories/sales_invoices_repository.dart';
+import 'package:desktop/features/sales/domain/repositories/sales_returns_repository.dart';
+import 'package:desktop/features/sales/domain/usecases/create_sales_invoice.dart';
+import 'package:desktop/features/sales/domain/usecases/create_sales_return.dart';
+import 'package:desktop/features/sales/domain/usecases/get_sales_invoices.dart';
+import 'package:desktop/features/sales/domain/usecases/get_sales_returns.dart';
+import 'package:desktop/features/sales/presentation/bloc/sales_invoices_bloc.dart';
+import 'package:desktop/features/sales/presentation/bloc/sales_returns_bloc.dart';
+
 final sl = GetIt.instance;
 
 Future<void> init() async {
@@ -142,6 +157,61 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<PurchaseReturnsRemoteDataSource>(
     () => PurchaseReturnsRemoteDataSourceImpl(sl()),
+  );
+
+  //! Features - Sales (Invoices & Returns)
+  // BLoC
+  sl.registerFactory(
+    () => SalesInvoicesBloc(
+      getSalesInvoicesUseCase: sl(),
+      createSalesInvoiceUseCase: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => SalesReturnsBloc(
+      getSalesReturnsUseCase: sl(),
+      createSalesReturnUseCase: sl(),
+    ),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => GetSalesInvoices(sl()));
+  sl.registerLazySingleton(() => CreateSalesInvoice(sl()));
+  sl.registerLazySingleton(() => GetSalesReturns(sl()));
+  sl.registerLazySingleton(() => CreateSalesReturn(sl()));
+
+  // Repository
+  sl.registerLazySingleton<SalesInvoicesRepository>(
+    () => SalesInvoicesRepositoryImpl(
+      localDataSource: sl(),
+      remoteDataSource: sl(),
+      connectivityInfo: sl(),
+      databaseService: sl(),
+      syncService: sl(),
+    ),
+  );
+  sl.registerLazySingleton<SalesReturnsRepository>(
+    () => SalesReturnsRepositoryImpl(
+      localDataSource: sl(),
+      remoteDataSource: sl(),
+      connectivityInfo: sl(),
+      databaseService: sl(),
+      syncService: sl(),
+    ),
+  );
+
+  // Data sources
+  sl.registerLazySingleton<SalesInvoicesLocalDataSource>(
+    () => SalesInvoicesLocalDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<SalesInvoicesRemoteDataSource>(
+    () => SalesInvoicesRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<SalesReturnsLocalDataSource>(
+    () => SalesReturnsLocalDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<SalesReturnsRemoteDataSource>(
+    () => SalesReturnsRemoteDataSourceImpl(sl(), sl()),
   );
 
   //! Features - Inventory (Batches)

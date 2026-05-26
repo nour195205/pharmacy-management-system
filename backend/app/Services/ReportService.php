@@ -51,4 +51,73 @@ class ReportService
 
         return $report;
     }
+
+    public function generateCustomReport($startDate, $endDate)
+    {
+        $start = Carbon::parse($startDate)->startOfDay();
+        $end = Carbon::parse($endDate)->endOfDay();
+        
+        // 1. Gather Data
+        $sales = SalesInvoice::whereBetween('created_at', [$start, $end])->get();
+        $totalSales = $sales->sum('total');
+        $totalTransactions = $sales->count();
+        
+        // Inventory warnings
+        $lowStock = Batch::where('quantity', '<', 10)->with('medicine')->take(20)->get();
+        $expiring = Batch::where('expiry_date', '<', Carbon::now()->addDays(30))->with('medicine')->take(20)->get();
+
+        $data = [
+            'date' => 'من ' . $start->format('Y-m-d') . ' إلى ' . $end->format('Y-m-d'),
+            'total_sales' => $totalSales,
+            'total_transactions' => $totalTransactions,
+            'low_stock' => $lowStock,
+            'expiring' => $expiring,
+            'sales_list' => $sales
+        ];
+
+        // 2. Generate PDF
+        return Pdf::loadView('reports.daily_pdf', $data);
+    }
+
+    public function generateCustomReportWeb($startDate, $endDate)
+    {
+        $start = Carbon::parse($startDate)->startOfDay();
+        $end = Carbon::parse($endDate)->endOfDay();
+        
+        // 1. Gather Data
+        $sales = SalesInvoice::whereBetween('created_at', [$start, $end])->get();
+        $totalSales = $sales->sum('total');
+        $totalTransactions = $sales->count();
+        
+        // Inventory warnings
+        $lowStock = Batch::where('quantity', '<', 10)->with('medicine')->take(20)->get();
+        $expiring = Batch::where('expiry_date', '<', Carbon::now()->addDays(30))->with('medicine')->take(20)->get();
+
+        $data = [
+            'date' => 'من ' . $start->format('Y-m-d') . ' إلى ' . $end->format('Y-m-d'),
+            'total_sales' => $totalSales,
+            'total_transactions' => $totalTransactions,
+            'low_stock' => $lowStock,
+            'expiring' => $expiring,
+            'sales_list' => $sales
+        ];
+
+        // 2. Generate PDF
+        $pdf = Pdf::loadView('reports.daily_pdf', $data);
+        $fileName = 'custom_report_' . $start->format('Y_m_d') . '_to_' . $end->format('Y_m_d') . '.pdf';
+        $filePath = 'reports/' . $fileName;
+
+        // 3. Save File
+        Storage::disk('public')->put($filePath, $pdf->output());
+
+        // 4. Save Record
+        $report = Report::create([
+            'report_date' => $start,
+            'file_path' => $filePath,
+            'type' => 'custom',
+            'total_sales' => $totalSales,
+        ]);
+
+        return $report;
+    }
 }

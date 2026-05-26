@@ -24,12 +24,54 @@ class DatabaseService {
     final directory = await getApplicationSupportDirectory();
     final path = join(directory.path, AppConstants.dbName);
 
-    return await openDatabase(
+    final db = await openDatabase(
       path,
       version: AppConstants.dbVersion,
       onCreate: _onCreate,
       onConfigure: _onConfigure,
     );
+
+    // Defensive migration check: create sales return tables if they do not exist
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS sales_returns (
+        id TEXT PRIMARY KEY,
+        sales_invoice_id TEXT NOT NULL,
+        date TEXT NOT NULL,
+        total REAL NOT NULL,
+        reason TEXT,
+        created_by INTEGER NOT NULL DEFAULT 1,
+        is_synced INTEGER DEFAULT 0,
+        created_at TEXT,
+        updated_at TEXT,
+        FOREIGN KEY (sales_invoice_id) REFERENCES sales_invoices (id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS sales_return_items (
+        id TEXT PRIMARY KEY,
+        sales_return_id TEXT NOT NULL,
+        batch_id TEXT NOT NULL,
+        quantity INTEGER NOT NULL,
+        selling_price REAL NOT NULL,
+        total REAL NOT NULL,
+        FOREIGN KEY (sales_return_id) REFERENCES sales_returns (id) ON DELETE CASCADE,
+        FOREIGN KEY (batch_id) REFERENCES batches (id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS branches (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        location TEXT,
+        is_synced INTEGER DEFAULT 0,
+        created_at TEXT,
+        updated_at TEXT
+      )
+    ''');
+
+    return db;
   }
 
   Future<void> _onConfigure(Database db) async {
@@ -37,6 +79,18 @@ class DatabaseService {
   }
 
   Future<void> _onCreate(Database db, int version) async {
+    // Branches Table (Matches Laravel schema)
+    await db.execute('''
+      CREATE TABLE branches (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        location TEXT,
+        is_synced INTEGER DEFAULT 0,
+        created_at TEXT,
+        updated_at TEXT
+      )
+    ''');
+
     // 1. Suppliers Table (Matches Laravel schema)
     await db.execute('''
       CREATE TABLE suppliers (
@@ -196,6 +250,36 @@ class DatabaseService {
       )
     ''');
 
+    // Sales Returns Table (Matches Laravel schema)
+    await db.execute('''
+      CREATE TABLE sales_returns (
+        id TEXT PRIMARY KEY,
+        sales_invoice_id TEXT NOT NULL,
+        date TEXT NOT NULL,
+        total REAL NOT NULL,
+        reason TEXT,
+        created_by INTEGER NOT NULL DEFAULT 1,
+        is_synced INTEGER DEFAULT 0,
+        created_at TEXT,
+        updated_at TEXT,
+        FOREIGN KEY (sales_invoice_id) REFERENCES sales_invoices (id) ON DELETE CASCADE
+      )
+    ''');
+
+    // Sales Return Items Table (Matches Laravel schema)
+    await db.execute('''
+      CREATE TABLE sales_return_items (
+        id TEXT PRIMARY KEY,
+        sales_return_id TEXT NOT NULL,
+        batch_id TEXT NOT NULL,
+        quantity INTEGER NOT NULL,
+        selling_price REAL NOT NULL,
+        total REAL NOT NULL,
+        FOREIGN KEY (sales_return_id) REFERENCES sales_returns (id) ON DELETE CASCADE,
+        FOREIGN KEY (batch_id) REFERENCES batches (id) ON DELETE CASCADE
+      )
+    ''');
+
     // 7. Sync Queue Table
     await db.execute('''
       CREATE TABLE pending_operations (
@@ -228,6 +312,8 @@ class DatabaseService {
   Future<void> clearDatabase() async {
     final db = await database;
     final batch = db.batch();
+    batch.delete('sales_return_items');
+    batch.delete('sales_returns');
     batch.delete('sales_invoice_items');
     batch.delete('sales_invoices');
     batch.delete('purchase_return_items');
@@ -238,6 +324,7 @@ class DatabaseService {
     batch.delete('medicines');
     batch.delete('customers');
     batch.delete('suppliers');
+    batch.delete('branches');
     batch.delete('pending_operations');
     await batch.commit();
   }

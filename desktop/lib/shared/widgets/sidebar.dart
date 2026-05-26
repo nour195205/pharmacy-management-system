@@ -111,8 +111,8 @@ class AppSidebar extends StatelessWidget {
                   onTap: () => onDestinationSelected(3),
                 ),
                 _SidebarItem(
-                  icon: LucideIcons.users,
-                  label: 'العملاء والائتمان',
+                  icon: LucideIcons.database,
+                  label: 'البيانات الأساسية',
                   selected: selectedIndex == 4,
                   onTap: () => onDestinationSelected(4),
                 ),

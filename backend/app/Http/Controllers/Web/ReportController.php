@@ -20,8 +20,18 @@ class ReportController extends Controller
 
     public function generate(Request $request)
     {
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $request->validate([
+                'start_date' => 'required|date',
+                'end_date'   => 'required|date|after_or_equal:start_date',
+            ]);
+
+            $this->reportService->generateCustomReportWeb($request->start_date, $request->end_date);
+            return redirect()->route('reports.index')->with('success', 'تم إنشاء تقرير الفترة المحددة بنجاح');
+        }
+
         $this->reportService->generateDailyReport();
-        return redirect()->route('reports.index')->with('success', 'تم إنشاء التقرير بنجاح');
+        return redirect()->route('reports.index')->with('success', 'تم إنشاء التقرير اليومي بنجاح');
     }
 
     public function download(Report $report)

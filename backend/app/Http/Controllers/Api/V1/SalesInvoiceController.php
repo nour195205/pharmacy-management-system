@@ -9,6 +9,7 @@ use App\Http\Resources\SalesInvoiceResource;
 use App\Models\SalesInvoice;
 use App\Services\SalesInvoiceService;
 use App\Traits\ApiResponse;
+use Illuminate\Support\Facades\Auth;
 
 class SalesInvoiceController extends Controller
 {
@@ -25,7 +26,7 @@ class SalesInvoiceController extends Controller
     public function store(StoreSalesInvoiceRequest $request)
     {
         try {
-            $invoice = $this->salesInvoiceService->store($request->validated(), auth()->id());
+            $invoice = $this->salesInvoiceService->store($request->validated(), Auth::id() ?? 1);
             $invoice->load('items.batch.medicine', 'branch', 'customer');
             return $this->created(
                 new SalesInvoiceResource($invoice),
