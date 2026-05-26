@@ -40,6 +40,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::apiResource('batches', BatchController::class);
         Route::apiResource('customers', CustomerController::class);
         Route::apiResource('purchase-invoices', PurchaseInvoiceController::class);
+        Route::apiResource('purchase-returns', \App\Http\Controllers\Api\V1\PurchaseReturnController::class)->only(['index', 'store', 'show']);
         Route::apiResource('sales-invoices', SalesInvoiceController::class);
 
     // });

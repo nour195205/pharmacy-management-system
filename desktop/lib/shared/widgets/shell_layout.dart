@@ -6,6 +6,8 @@ class ShellLayout extends StatefulWidget {
   final SyncService syncService;
   final Widget dashboardPage;
   final Widget medicinesPage;
+  final Widget inventoryPage;
+  final Widget purchasesPage;
   final Widget customersPage;
   final Widget salesPage;
   final Widget reportsPage;
@@ -15,6 +17,8 @@ class ShellLayout extends StatefulWidget {
     required this.syncService,
     required this.dashboardPage,
     required this.medicinesPage,
+    required this.inventoryPage,
+    required this.purchasesPage,
     required this.customersPage,
     required this.salesPage,
     required this.reportsPage,
@@ -70,6 +74,8 @@ class _ShellLayoutState extends State<ShellLayout> {
                       children: [
                         widget.dashboardPage,
                         widget.medicinesPage,
+                        widget.inventoryPage,
+                        widget.purchasesPage,
                         widget.customersPage,
                         widget.salesPage,
                         widget.reportsPage,

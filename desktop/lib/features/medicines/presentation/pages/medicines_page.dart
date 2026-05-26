@@ -61,40 +61,135 @@ class _MedicinesPageState extends State<MedicinesPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header Stats & Search Controls Row
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.02),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+            BlocBuilder<MedicinesBloc, MedicinesState>(
+              builder: (context, state) {
+                String? currentCategory;
+                bool? currentStatus;
+                List<String> categories = ['عام'];
+
+                if (state is MedicinesLoadedState) {
+                  currentCategory = state.selectedCategory;
+                  currentStatus = state.selectedStatus;
+                  // Dynamically extract unique categories from list
+                  final uniqueCategories = state.medicines.map((m) => m.category).toSet().toList();
+                  if (uniqueCategories.isNotEmpty) {
+                    categories = uniqueCategories;
+                  }
+                }
+
+                return Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.02),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: const InputDecoration(
-                        hintText: 'البحث عن طريق اسم الدواء، الباركود، أو التصنيف...',
-                        prefixIcon: Icon(LucideIcons.search, size: 20),
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: const InputDecoration(
+                            hintText: 'البحث عن طريق اسم الدواء، الباركود، أو التصنيف...',
+                            prefixIcon: Icon(LucideIcons.search, size: 20),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                ElevatedButton.icon(
-                  onPressed: () => _showAddEditDialog(context),
-                  icon: const Icon(LucideIcons.plus, size: 18),
-                  label: const Text('إضافة دواء جديد'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  ),
-                ),
-              ],
+                    const SizedBox(width: 16),
+                    // Category Filter Dropdown
+                    Container(
+                      width: 150,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String?>(
+                          value: currentCategory,
+                          hint: const Text('كل التصنيفات'),
+                          isExpanded: true,
+                          items: [
+                            const DropdownMenuItem<String?>(
+                              value: null,
+                              child: Text('كل التصنيفات'),
+                            ),
+                            ...categories.map((cat) => DropdownMenuItem<String?>(
+                              value: cat,
+                              child: Text(cat),
+                            )),
+                          ],
+                          onChanged: (cat) {
+                            context.read<MedicinesBloc>().add(FilterMedicinesEvent(
+                              category: cat,
+                              isActive: currentStatus,
+                            ));
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Status Filter Dropdown (Active / Inactive)
+                    Container(
+                      width: 150,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<bool?>(
+                          value: currentStatus,
+                          hint: const Text('كل الحالات'),
+                          isExpanded: true,
+                          items: const [
+                            DropdownMenuItem<bool?>(
+                              value: null,
+                              child: Text('كل الحالات'),
+                            ),
+                            DropdownMenuItem<bool?>(
+                              value: true,
+                              child: Text('نشط فقط'),
+                            ),
+                            DropdownMenuItem<bool?>(
+                              value: false,
+                              child: Text('غير نشط فقط'),
+                            ),
+                          ],
+                          onChanged: (status) {
+                            context.read<MedicinesBloc>().add(FilterMedicinesEvent(
+                              category: currentCategory,
+                              isActive: status,
+                            ));
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    ElevatedButton.icon(
+                      onPressed: () => _showAddEditDialog(context),
+                      icon: const Icon(LucideIcons.plus, size: 18),
+                      label: const Text('إضافة دواء جديد'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 24),
 

@@ -24,6 +24,7 @@ class MedicinesBloc extends Bloc<MedicinesEvent, MedicinesState> {
     on<EditMedicineEvent>(_onEditMedicine);
     on<DeleteMedicineEvent>(_onDeleteMedicine);
     on<SearchMedicinesEvent>(_onSearchMedicines);
+    on<FilterMedicinesEvent>(_onFilterMedicines);
   }
 
   Future<void> _onLoadMedicines(LoadMedicinesEvent event, Emitter<MedicinesState> emit) async {
@@ -48,7 +49,12 @@ class MedicinesBloc extends Bloc<MedicinesEvent, MedicinesState> {
           final updatedList = List<Medicine>.from(currentState.medicines)..add(newMedicine);
           emit(currentState.copyWith(
             medicines: updatedList,
-            filteredMedicines: _applySearch(updatedList, currentState.searchQuery),
+            filteredMedicines: _applyFilters(
+              updatedList,
+              currentState.searchQuery,
+              currentState.selectedCategory,
+              currentState.selectedStatus,
+            ),
           ));
         } else {
           add(const LoadMedicinesEvent());
@@ -69,7 +75,12 @@ class MedicinesBloc extends Bloc<MedicinesEvent, MedicinesState> {
           }).toList();
           emit(currentState.copyWith(
             medicines: updatedList,
-            filteredMedicines: _applySearch(updatedList, currentState.searchQuery),
+            filteredMedicines: _applyFilters(
+              updatedList,
+              currentState.searchQuery,
+              currentState.selectedCategory,
+              currentState.selectedStatus,
+            ),
           ));
         } else {
           add(const LoadMedicinesEvent());
@@ -88,7 +99,12 @@ class MedicinesBloc extends Bloc<MedicinesEvent, MedicinesState> {
           final updatedList = currentState.medicines.where((m) => m.id != event.id).toList();
           emit(currentState.copyWith(
             medicines: updatedList,
-            filteredMedicines: _applySearch(updatedList, currentState.searchQuery),
+            filteredMedicines: _applyFilters(
+              updatedList,
+              currentState.searchQuery,
+              currentState.selectedCategory,
+              currentState.selectedStatus,
+            ),
           ));
         } else {
           add(const LoadMedicinesEvent());
@@ -102,19 +118,61 @@ class MedicinesBloc extends Bloc<MedicinesEvent, MedicinesState> {
       final currentState = state as MedicinesLoadedState;
       emit(currentState.copyWith(
         searchQuery: event.query,
-        filteredMedicines: _applySearch(currentState.medicines, event.query),
+        filteredMedicines: _applyFilters(
+          currentState.medicines,
+          event.query,
+          currentState.selectedCategory,
+          currentState.selectedStatus,
+        ),
       ));
     }
   }
 
-  List<Medicine> _applySearch(List<Medicine> list, String query) {
-    if (query.trim().isEmpty) return list;
-    final lowerQuery = query.toLowerCase();
-    return list.where((m) {
-      final nameMatch = m.name.toLowerCase().contains(lowerQuery);
-      final categoryMatch = m.category.toLowerCase().contains(lowerQuery);
-      final barcodeMatch = m.barcode?.toLowerCase().contains(lowerQuery) ?? false;
-      return nameMatch || categoryMatch || barcodeMatch;
-    }).toList();
+  void _onFilterMedicines(FilterMedicinesEvent event, Emitter<MedicinesState> emit) {
+    if (state is MedicinesLoadedState) {
+      final currentState = state as MedicinesLoadedState;
+      emit(currentState.copyWith(
+        selectedCategory: () => event.category,
+        selectedStatus: () => event.isActive,
+        filteredMedicines: _applyFilters(
+          currentState.medicines,
+          currentState.searchQuery,
+          event.category,
+          event.isActive,
+        ),
+      ));
+    }
+  }
+
+  List<Medicine> _applyFilters(
+    List<Medicine> list,
+    String query,
+    String? category,
+    bool? isActive,
+  ) {
+    var filtered = list;
+
+    // 1. Filter by category
+    if (category != null && category.isNotEmpty) {
+      filtered = filtered.where((m) => m.category == category).toList();
+    }
+
+    // 2. Filter by status (active/inactive)
+    if (isActive != null) {
+      filtered = filtered.where((m) => m.isActive == isActive).toList();
+    }
+
+    // 3. Filter by search query
+    if (query.trim().isNotEmpty) {
+      final lowerQuery = query.toLowerCase();
+      filtered = filtered.where((m) {
+        final nameMatch = m.name.toLowerCase().contains(lowerQuery);
+        final categoryMatch = m.category.toLowerCase().contains(lowerQuery);
+        final barcodeMatch = m.barcode?.toLowerCase().contains(lowerQuery) ?? false;
+        return nameMatch || categoryMatch || barcodeMatch;
+      }).toList();
+    }
+
+    return filtered;
   }
 }

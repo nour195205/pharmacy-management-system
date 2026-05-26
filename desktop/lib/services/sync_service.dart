@@ -201,10 +201,56 @@ class SyncService {
         debugPrint('Sync down medicines error: $e');
       }
 
+      // 3. Sync Batches
+      try {
+        final Response response = await _apiService.get('/batches');
+        final responseData = response.data;
+        if (responseData != null && responseData['data'] != null) {
+          final List batches = responseData['data'];
+          for (var item in batches) {
+            final batchMap = item as Map<String, dynamic>;
+            final id = batchMap['id'].toString();
+            
+            String medId = (batchMap['medicine_id'] ?? '').toString();
+            if (batchMap['medicine'] != null && batchMap['medicine'] is Map) {
+              medId = batchMap['medicine']['id'].toString();
+            }
+
+            int bId = 1;
+            if (batchMap['branch'] != null && batchMap['branch'] is Map) {
+              bId = (batchMap['branch']['id'] as num?)?.toInt() ?? 1;
+            } else {
+              bId = (batchMap['branch_id'] as num?)?.toInt() ?? 1;
+            }
+            
+            await db.insert('batches', {
+              'id': id,
+              'medicine_id': medId,
+              'batch_number': batchMap['batch_number']?.toString() ?? '',
+              'manufacture_date': batchMap['manufacture_date']?.toString() ?? '',
+              'expiry_date': batchMap['expiry_date']?.toString() ?? '',
+              'quantity': batchMap['quantity'] != null 
+                  ? double.tryParse(batchMap['quantity'].toString()) ?? 0.0
+                  : 0.0,
+              'purchase_price': batchMap['purchase_price'] != null 
+                  ? int.tryParse(batchMap['purchase_price'].toString()) ?? 0
+                  : 0,
+              'selling_price': batchMap['selling_price'] != null 
+                  ? int.tryParse(batchMap['selling_price'].toString()) ?? 0
+                  : 0,
+              'branch_id': bId,
+              'is_synced': 1,
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
+          }
+        }
+      } catch (e) {
+        debugPrint('Sync down batches error: $e');
+      }
+
       // Notify UI
       _syncStatusController.add(SyncStatus.synced);
     } catch (e) {
-      debugPrint('Sync down error: $e');
+        debugPrint('Sync down error: $e');
     }
   }
 
@@ -247,6 +293,22 @@ class SyncService {
           [serverId, localId],
         );
       }
+      else if (tableName == 'purchase_invoices') {
+        await txn.rawUpdate(
+          'UPDATE purchase_invoice_items SET purchase_invoice_id = ? WHERE purchase_invoice_id = ?',
+          [serverId, localId],
+        );
+        await txn.rawUpdate(
+          'UPDATE purchase_returns SET purchase_invoice_id = ? WHERE purchase_invoice_id = ?',
+          [serverId, localId],
+        );
+      }
+      else if (tableName == 'purchase_returns') {
+        await txn.rawUpdate(
+          'UPDATE purchase_return_items SET purchase_return_id = ? WHERE purchase_return_id = ?',
+          [serverId, localId],
+        );
+      }
 
       // 3. Update any subsequent items in the pending operations queue that reference the old localId
       // This handles cases where an update/delete of this record is already queued
@@ -267,6 +329,10 @@ class SyncService {
         return '/suppliers';
       case 'sales_invoices':
         return '/sales-invoices';
+      case 'purchase_invoices':
+        return '/purchase-invoices';
+      case 'purchase_returns':
+        return '/purchase-returns';
       case 'batches':
         return '/batches';
       default:

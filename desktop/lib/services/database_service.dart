@@ -104,6 +104,66 @@ class DatabaseService {
       )
     ''');
 
+    // Purchase Invoices
+    await db.execute('''
+      CREATE TABLE purchase_invoices (
+        id TEXT PRIMARY KEY,
+        branch_id INTEGER NOT NULL,
+        supplier_id TEXT NOT NULL,
+        user_id INTEGER NOT NULL DEFAULT 1,
+        invoice_date TEXT NOT NULL,
+        total_amount REAL NOT NULL,
+        is_synced INTEGER DEFAULT 0,
+        created_at TEXT,
+        updated_at TEXT,
+        FOREIGN KEY (supplier_id) REFERENCES suppliers (id) ON DELETE CASCADE
+      )
+    ''');
+
+    // Purchase Invoice Items
+    await db.execute('''
+      CREATE TABLE purchase_invoice_items (
+        id TEXT PRIMARY KEY,
+        purchase_invoice_id TEXT NOT NULL,
+        batch_id TEXT NOT NULL,
+        qty INTEGER NOT NULL,
+        price REAL NOT NULL,
+        FOREIGN KEY (purchase_invoice_id) REFERENCES purchase_invoices (id) ON DELETE CASCADE,
+        FOREIGN KEY (batch_id) REFERENCES batches (id) ON DELETE CASCADE
+      )
+    ''');
+
+    // Purchase Returns
+    await db.execute('''
+      CREATE TABLE purchase_returns (
+        id TEXT PRIMARY KEY,
+        purchase_invoice_id TEXT NOT NULL,
+        user_id INTEGER NOT NULL DEFAULT 1,
+        date TEXT NOT NULL,
+        total REAL NOT NULL,
+        reason TEXT,
+        created_by INTEGER NOT NULL DEFAULT 1,
+        is_synced INTEGER DEFAULT 0,
+        created_at TEXT,
+        updated_at TEXT,
+        FOREIGN KEY (purchase_invoice_id) REFERENCES purchase_invoices (id) ON DELETE CASCADE
+      )
+    ''');
+
+    // Purchase Return Items
+    await db.execute('''
+      CREATE TABLE purchase_return_items (
+        id TEXT PRIMARY KEY,
+        purchase_return_id TEXT NOT NULL,
+        batch_id TEXT NOT NULL,
+        quantity INTEGER NOT NULL,
+        purchase_price REAL NOT NULL,
+        total REAL NOT NULL,
+        FOREIGN KEY (purchase_return_id) REFERENCES purchase_returns (id) ON DELETE CASCADE,
+        FOREIGN KEY (batch_id) REFERENCES batches (id) ON DELETE CASCADE
+      )
+    ''');
+
     // 5. Sales Invoices Table (Matches Laravel schema)
     await db.execute('''
       CREATE TABLE sales_invoices (
@@ -170,6 +230,10 @@ class DatabaseService {
     final batch = db.batch();
     batch.delete('sales_invoice_items');
     batch.delete('sales_invoices');
+    batch.delete('purchase_return_items');
+    batch.delete('purchase_returns');
+    batch.delete('purchase_invoice_items');
+    batch.delete('purchase_invoices');
     batch.delete('batches');
     batch.delete('medicines');
     batch.delete('customers');

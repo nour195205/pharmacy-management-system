@@ -27,3 +27,9 @@ class SearchMedicinesEvent extends MedicinesEvent {
   final String query;
   const SearchMedicinesEvent(this.query);
 }
+
+class FilterMedicinesEvent extends MedicinesEvent {
+  final String? category;
+  final bool? isActive;
+  const FilterMedicinesEvent({this.category, this.isActive});
+}
