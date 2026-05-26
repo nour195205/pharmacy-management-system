@@ -1,19 +1,19 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Web\ProfileController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\BranchController;
-use App\Http\Controllers\SupplierController;
-use App\Http\Controllers\MedicineController;
-use App\Http\Controllers\BatchController;
-use App\Http\Controllers\SalesInvoiceController;
-use App\Http\Controllers\PurchaseReturnController;
-use App\Http\Controllers\SalesReturnController;
-use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\PurchaseInvoiceController;
-use App\Http\Controllers\ReportController;
+use App\Http\Controllers\Web\BranchController;
+use App\Http\Controllers\Web\SupplierController;
+use App\Http\Controllers\Web\MedicineController;
+use App\Http\Controllers\Web\BatchController;
+use App\Http\Controllers\Web\SalesInvoiceController;
+use App\Http\Controllers\Web\PurchaseReturnController;
+use App\Http\Controllers\Web\SalesReturnController;
+use App\Http\Controllers\Web\CustomerController;
+use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\PaymentController;
+use App\Http\Controllers\Web\PurchaseInvoiceController;
+use App\Http\Controllers\Web\ReportController;
 
 
 Route::middleware('auth')->group(function () {
@@ -58,7 +58,7 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('sales-invoices', SalesInvoiceController::class);
     Route::get('sales-invoices/{salesInvoice}/print', [SalesInvoiceController::class, 'print'])->name('sales-invoices.print');
-    Route::get('sales-invoices/{salesInvoice}/receipt', [App\Http\Controllers\SalesInvoiceController::class, 'receipt'])->name('sales-invoices.receipt');
+    Route::get('sales-invoices/{salesInvoice}/receipt', [SalesInvoiceController::class, 'receipt'])->name('sales-invoices.receipt');
 
     Route::resource('sales-returns', SalesReturnController::class);
     Route::get('sales-returns/{salesReturn}/receipt', [SalesReturnController::class, 'receipt'])->name('sales-returns.receipt');

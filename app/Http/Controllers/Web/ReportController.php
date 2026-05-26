@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Controller;
 use App\Models\Report;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
@@ -9,12 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ReportController extends Controller
 {
-    protected $reportService;
-
-    public function __construct(ReportService $reportService)
-    {
-        $this->reportService = $reportService;
-    }
+    public function __construct(private ReportService $reportService) {}
 
     public function index()
     {
@@ -24,7 +20,7 @@ class ReportController extends Controller
 
     public function generate(Request $request)
     {
-        $report = $this->reportService->generateDailyReport();
+        $this->reportService->generateDailyReport();
         return redirect()->route('reports.index')->with('success', 'تم إنشاء التقرير بنجاح');
     }
 
